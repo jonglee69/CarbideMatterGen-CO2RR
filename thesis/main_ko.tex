@@ -23,7 +23,9 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage{enumitem}
 
+% \tbu: 실험 대기(빨강), \tbc: 진행 중 계산 대기(파랑)
 \newcommand{\tbu}[1]{\textcolor{red!70!black}{\textbf{[#1 -- 실험 완료 후 업데이트 예정]}}}
+\newcommand{\tbc}[1]{\textcolor{blue!60!black}{\textbf{[#1 -- 계산 완료 후 추가 예정]}}}
 \newcommand{\dGCO}{\Delta G_{\mathrm{CO^*}}}
 \newcommand{\dGH}{\Delta G_{\mathrm{H^*}}}
 \newcommand{\dGCOOH}{\Delta G_{\mathrm{COOH^*}}}
@@ -340,6 +342,22 @@ CeY\textsubscript{2}ZrWC\textsubscript{7}                                   & $-
 \caption{페르미 준위 부근 여섯 후보의 총 상태밀도(DFT, PBE).}
 \label{fig:dos}
 \end{figure}
+
+\section{고용체 슈퍼셀과 진행 중인 전산 작업}
+\label{sec:outstanding}
+고엔트로피 숏리스트의 특수 준무작위 구조 12개를 암염형 및 육방정 골격 위의 명시적 무질서
+슈퍼셀로 구성하였으며(Stage A$'$, \ref{ch:methods}장), 각각 금속 부격자 쌍상관 오차가 낮도록
+어닐링하였다. 이들은 아래의 명시적 무질서 표면 연구의 기질이다. 다음 제일원리 결과는 \emph{진행
+중}이며 완료 시 반영할 예정이다.
+\begin{itemize}[nosep]
+\item \tbc{이완된 면/SQS 슈퍼셀에 대한 DFT(QE) 표면 자유에너지 $\dGCO$, $\dGCOOH$, $\dGH$ ---
+MLIP 수준 활성 순위와 $\dGCOOH<\dGH$ 선택성을 DFT 수준에서 확인}
+\item \tbc{여섯 후보의 DFT 생성/분해 에너지 및 볼록 껍질(convex hull) 안정성 --- 표~\ref{tab:master}에
+보고한 잔류 응력 점검을 넘어서}
+\item \tbc{각 후보 최적 자리의 완전한 전산 수소 전극 자유에너지 다이어그램과 한계 전위 $U_L$}
+\item \tbc{전도 특성(그림~\ref{fig:pdos})을 흡착 디스크립터와 연결하는 $d$-밴드 중심 / 투영
+결정-궤도 분석}
+\end{itemize}
 
 % =====================================================================
 \chapter{계획된 실험 검증}

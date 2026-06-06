@@ -24,8 +24,11 @@
 \usepackage{microtype}
 \usepackage{enumitem}
 
-% --- a visible tag for results awaiting the experimental campaign ---
+% --- visible tags for pending work ---
+%   \tbu : results awaiting the EXPERIMENTAL campaign (red)
+%   \tbc : results awaiting an in-progress CALCULATION (blue)
 \newcommand{\tbu}[1]{\textcolor{red!70!black}{\textbf{[#1 -- to be updated upon experimental completion]}}}
+\newcommand{\tbc}[1]{\textcolor{blue!60!black}{\textbf{[#1 -- to be added when the calculation completes]}}}
 \newcommand{\dGCO}{\Delta G_{\mathrm{CO^*}}}
 \newcommand{\dGH}{\Delta G_{\mathrm{H^*}}}
 \newcommand{\dGCOOH}{\Delta G_{\mathrm{COOH^*}}}
@@ -384,6 +387,25 @@ identifies the conduction character.}
 \caption{Total density of states of the six candidates near the Fermi level (DFT, PBE).}
 \label{fig:dos}
 \end{figure}
+
+\section{Solid-solution supercells and outstanding computational work}
+\label{sec:outstanding}
+Twelve special quasirandom structures of the high-entropy shortlist were constructed
+(Stage A$'$, Sec.~\ref{ch:methods}) as explicit-disorder supercells on rock-salt and hexagonal
+frameworks, each annealed to a low residual metal-sublattice pair-correlation error. These are
+the substrate for the explicit-disorder surface studies below. The following first-principles
+results are \emph{in progress} and will be incorporated upon completion:
+\begin{itemize}[nosep]
+\item \tbc{DFT (QE) surface free energies $\dGCO$, $\dGCOOH$, $\dGH$ on the relaxed facets / SQS
+supercells, confirming the MLIP-level activity ranking and the $\dGCOOH<\dGH$ selectivity at the
+DFT level}
+\item \tbc{DFT formation / decomposition energies and convex-hull stability of the six candidates,
+beyond the residual-stress check reported in Table~\ref{tab:master}}
+\item \tbc{the full computational-hydrogen-electrode free-energy diagram and limiting potential
+$U_L$ of the best site of each candidate}
+\item \tbc{$d$-band-center / projected-crystal-orbital analysis linking the conduction character
+(Fig.~\ref{fig:pdos}) to the adsorption descriptors}
+\end{itemize}
 
 % =====================================================================
 \chapter{Planned Experimental Validation}
