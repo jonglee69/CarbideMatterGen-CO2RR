@@ -1,0 +1,549 @@
+% =====================================================================
+%  석사학위논문 (한글)  --  이현주
+%  CO2-to-CO 환원 반응을 위한 경제적 고엔트로피 카바이드 전극촉매의
+%  생성형 탐색 및 제일원리 검증
+%
+%  컴파일:  xelatex main_ko && xelatex main_ko   (목차/참조 위해 2회)
+%  그림은 ../figures/ 에서 읽음 (CarbideMatterGen 파이프라인 산출물).
+% =====================================================================
+\documentclass[11pt,a4paper]{report}
+
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{kotex}                 % 한글 (xelatex)
+\usepackage{graphicx}
+\graphicspath{{../figures/}}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+% --- siunitx 대체 경량 매크로 (패키지 의존성 회피) ---
+\providecommand{\SI}[2]{#1\,#2}
+\providecommand{\SIrange}[3]{#1--#2\,#3}
+\providecommand{\angstrom}{\mbox{\AA}}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage[hidelinks]{hyperref}
+\usepackage{enumitem}
+
+\newcommand{\tbu}[1]{\textcolor{red!70!black}{\textbf{[#1 -- 실험 완료 후 업데이트 예정]}}}
+\newcommand{\dGCO}{\Delta G_{\mathrm{CO^*}}}
+\newcommand{\dGH}{\Delta G_{\mathrm{H^*}}}
+\newcommand{\dGCOOH}{\Delta G_{\mathrm{COOH^*}}}
+\newcommand{\Ef}{E_\mathrm{F}}
+
+\title{\bfseries CO\textsubscript{2}-to-CO 환원 반응을 위한\\
+경제적 고엔트로피 카바이드 전극촉매의\\
+생성형 탐색 및 제일원리 검증}
+\author{이현주 (Hyun-Ju Lee)\\[4pt]
+\small 지도교수: [지도교수명]\\
+\small [학과], [대학교]}
+\date{2026년 6월}
+
+\begin{document}
+\maketitle
+
+% =====================================================================
+\chapter*{국문 초록}
+\addcontentsline{toc}{chapter}{국문 초록}
+이산화탄소를 일산화탄소로 전환하는 전기화학적 환원 반응(CO\textsubscript{2}RR-to-CO)은
+인위적 탄소 순환을 닫기 위한 핵심 단계이지만, 가장 선택성이 높은 기존 촉매(Au, Ag)는
+희소하고 고가이다. 본 논문은 \emph{경제적인} 일산화탄소 생성 촉매를 고엔트로피 전이금속
+카바이드(high-entropy carbide, HEC)의 화학 공간에서 직접 탐색하는 종단간(end-to-end)
+\emph{생성형(generative)} 발견 파이프라인을 개발하고 적용한다. 물성 조건부 확산 모델
+(미세조정된 \textsc{MatterGen})을 안정하고 금속성이며 일산화탄소를 방출하고 백금족 금속이
+없는 조성으로 유도하며, 생성된 후보군을 조성 기반 대리지표, 기계학습 원자간 퍼텐셜(UMA)을
+이용한 표면 자유에너지 스크리닝, 그리고 \textsc{Quantum ESPRESSO}에서의 밀도범함수이론(DFT)
+검증의 깔때기를 통과시킨다. 1024개의 생성 구조에서 출발하여 파이프라인은 6개의 후보 HEC
+(Pr\textsubscript{3}Y\textsubscript{2}WC\textsubscript{7},
+La\textsubscript{5}Y\textsubscript{4}W\textsubscript{2}C\textsubscript{9},
+Ce\textsubscript{2}Y\textsubscript{2}ZrWC\textsubscript{6},
+La\textsubscript{3}Y\textsubscript{5}(WC\textsubscript{3})\textsubscript{3},
+Y\textsubscript{2}ZrWC\textsubscript{8},
+CeY\textsubscript{2}ZrWC\textsubscript{7})로 수렴하며, 각각은 거의 열중성에 가까운 일산화탄소
+흡착 자리($|\dGCO|\lesssim\SI{0.02}{eV}$)와 수소 대비 일산화탄소 선택성을 갖는 것으로
+예측된다. DFT는 여섯 후보 모두가 금속성임을 확인하며, 투영 상태밀도(PDOS)는 전도 특성이
+탄소 $2p$ 네트워크와 금속 $d$ 부격자의 혼성으로 이루어짐을 규명한다. 이를 보완하는 실험적
+검증 계획---소재 합성, 전기화학 CO\textsubscript{2}RR 시험, CO/CO\textsubscript{2} 온라인
+가스 분석, 액상 생성물에 대한 \textsuperscript{1}H NMR, 흡착 중간체에 대한 (in-situ) FT-IR---
+을 설계하여 제시하며, 해당 결과는 실험 완료 시 보고한다. 본 연구는 경제성 제약을
+\emph{생성 단계에서} 내재화할 수 있음을 보임으로써, 촉매 발견을 알려진 소재의 선별에서
+저렴한 신소재의 \emph{설계}로 전환한다.
+\par\vspace{6pt}
+\noindent\textbf{주요어:} 이산화탄소 환원; 고엔트로피 카바이드; 생성형 모델; 기계학습 원자간
+퍼텐셜; 밀도범함수이론; 비귀금속 전극촉매.
+
+\tableofcontents
+
+% =====================================================================
+\chapter{서론}
+\label{ch:intro}
+
+\section{연구 동기: 저렴한 CO\texorpdfstring{$_2$}{2}-to-CO 전환}
+재생에너지로 구동되는 전기화학적 이산화탄소 환원(CO\textsubscript{2}RR)은 온실가스 폐기물을
+화학 원료로 전환하는 경로를 제공한다. 접근 가능한 생성물 중 일산화탄소는 기술적으로 가장
+가치가 큰 것 중 하나로, 가장 높은 선택성이 입증된 2전자 생성물이며 피셔-트롭쉬 및 카르보닐화
+화학의 출발점이다. 금속 전극의 일산화탄소 선택성은 핵심 중간체인 \mbox{*COOH}와 *CO를 흡착
+수소 *H에 비해 얼마나 강하게 결합하는지로 결정된다. Hori의 고전적인 금속 전극 조사에 따르면
+Au, Ag, Zn이 대표적인 일산화탄소 생성 금속이며, Cu는 독특하게 탄화수소까지 진행하고 대부분의
+다른 금속은 경쟁 반응인 수소 발생 반응(HER)을 선호한다~\cite{hori2008}. 구리에서의 이러한
+거동의 메커니즘적 근거와 *COOH, *CO 디스크립터의 중심적 역할은 Nitopi 등에 의해 포괄적으로
+정리되었다~\cite{nitopi2019}.
+
+문제는 화학적이라기보다 경제적이다. 가장 일산화탄소 선택성이 높은 금속(Au, Ag)은 희소하고
+고가이며, 이는 기후에 의미가 있으려면 이산화탄소 전환이 작동해야 할 테라와트 규모와 양립하기
+어렵다. 따라서 지구상에 풍부한 원소를 사용하여 동전금속(coinage metal)의 유리한 흡착에너지
+지형을 재현하는 촉매가 절실히 필요하다.
+
+\section{왜 고엔트로피 카바이드인가}
+본 논문은 두 가지 소재 설계 아이디어를 결합한다. 첫째, 전이금속 카바이드(TMC)는 오랫동안
+``백금과 유사한'' 표면 화학을 나타내는 것으로 알려져 왔다. 텅스텐 카바이드가 여러 촉매 반응에서
+백금을 모방한다는 Levy와 Boudart의 선구적 관찰~\cite{levy1973}은 TMC를 귀금속의 저렴한 대체재로
+보는 수십 년의 연구를 촉발했고, 특히 몰리브덴 카바이드는 이산화탄소를 일산화탄소로 환원하는
+확립된 선택적 촉매이다~\cite{porosoff2014}. 탄소는 금속 $d$ 밴드로 전자밀도를 공여하고 표면
+상태밀도를 재구성하여 흡착 강도를 유용한 영역으로 조정한다.
+
+둘째, \emph{고엔트로피} 소재---네 가지 이상 원소의 거의 등몰 고용체---는 국소 흡착 환경의 거의
+연속적인 분포를 제공한다. Batchelor 등은 이 연속성이 바로 전극촉매가 필요로 하는 것이라고
+주장했는데, 최적 결합 자리의 소수가 측정 활성을 지배할 수 있기 때문이다~\cite{batchelor2019}.
+이후 고엔트로피 합금은 CO\textsubscript{2}/CO 환원 촉매로 실험적으로 구현되었다~\cite{nellaiappan2020}.
+고엔트로피 카바이드는 그 자체로 합성 가능한 단일상 소재이며, 이는 엔트로피 디스크립터를 이용한
+내화성 5금속 카바이드의 발견으로 입증되었다~\cite{sarker2018}. 카바이드의 ``백금 유사'' 전자구조와
+고엔트로피 자리 다양성을 결합하되 팔레트를 저렴한 금속으로 제한하는 것이 본 연구의 탐색 공간을
+정의한다.
+
+\section{왜 생성형 파이프라인인가}
+기존의 전산 촉매 발견은 \emph{이미 존재하는} 데이터베이스를 선별한다. 다금속 카바이드의 조합
+공간은 열거하기에 너무 방대하며, 그 안에서 저렴한 부분집합은 희소하다. 본 연구는 대신
+\emph{생성형} 전략을 채택한다. 안정한 무기 결정의 분포를 학습한 확산 모델~\cite{zeni2025}을
+미세조정하여 표본 추출이 목표 물성값으로 \emph{유도}되도록 하며, 여기에는 백금족 및 중희토류
+함량을 페널티화하는 명시적 \emph{경제성} 제약이 포함된다. 따라서 경제성은 사후 필터가 아니라
+생성 목표가 된다. 모델이 새로운 구조를 제안하므로, 발견의 비싼 부분(DFT)은 점점 정확하지만
+점점 비싼 평가자들의 깔때기를 통해 도달한 소수의 유망 후보에만 사용된다.
+
+\section{연구 목표와 구성}
+본 논문의 목표는 다음과 같다. (i) CO\textsubscript{2}RR-to-CO HEC 촉매를 위한 경제성 제약 생성형
+파이프라인을 구축한다. (ii) 상위 후보를 안정성과 금속 전도성에 대해 제일원리 DFT로 검증하고 전도
+상태의 궤도 특성을 규명한다. (iii) 전산 예측을 확인할 실험 캠페인을 설계한다. \ref{ch:theory}장은
+이론적 배경을, \ref{ch:methods}장은 전산 방법론을, \ref{ch:results}장은 전산 결과를,
+\ref{ch:experiment}장은 계획된 실험 검증을, \ref{ch:discussion}장은 고찰을, \ref{ch:conclusion}장은
+결론을 다룬다.
+
+% =====================================================================
+\chapter{이론적 배경}
+\label{ch:theory}
+
+\section{CO\texorpdfstring{$_2$}{2}-to-CO 열역학과 전산 수소 전극}
+일산화탄소로 가는 2전자 경로는 단일 카르복실 중간체를 거쳐 진행된다.
+\begin{align}
+\mathrm{CO_2(g)} + \mathrm{H^+} + e^- + {*} &\rightarrow \mathrm{*COOH},\\
+\mathrm{*COOH} + \mathrm{H^+} + e^- &\rightarrow \mathrm{*CO} + \mathrm{H_2O},\\
+\mathrm{*CO} &\rightarrow \mathrm{CO(g)} + {*}.
+\end{align}
+전기화학 단계의 반응 자유에너지는 N\o{}rskov 등의 전산 수소 전극(CHE)~\cite{norskov2004}으로
+평가하며, 여기서 양성자-전자 쌍의 화학 퍼텐셜은 가역 수소 전극 대비 \SI{0}{V}에서 기상
+H\textsubscript{2}에 기준한다.
+\begin{equation}
+\mu(\mathrm{H^+}) + \mu(e^-) = \tfrac{1}{2}\,\mu(\mathrm{H_2}) - eU .
+\end{equation}
+본 연구 전반에서 사용하는 흡착 자유에너지는 다음과 같다.
+\begin{align}
+\dGCO   &= E(\mathrm{*CO})   - E(*) - E(\mathrm{CO_{(g)}}) + \Delta_{\mathrm{CO}},\\
+\dGCOOH &= E(\mathrm{*COOH}) - E(*) - E(\mathrm{CO_{2(g)}}) - \tfrac12 E(\mathrm{H_{2(g)}}) + \Delta_{\mathrm{COOH}},\\
+\dGH    &= E(\mathrm{*H})    - E(*) - \tfrac12 E(\mathrm{H_{2(g)}}) + \Delta_{\mathrm{H}},
+\end{align}
+여기서 $\Delta$ 항은 표준 영점 진동 및 엔트로피 보정이다. 좋은 일산화탄소 생성 자리는
+$\dGCO$가 0에 가까울 것(일산화탄소가 표면을 피독시키지 않고 생성물로 방출됨), $\dGCOOH$가
+이산화탄소를 활성화할 만큼 충분히 낮을 것, 그리고 선택성에 결정적으로 $\dGCOOH < \dGH$일 것
+(CO\textsubscript{2}RR이 HER을 능가)을 요구한다.
+
+\section{디스크립터, Sabatier 원리, 카바이드}
+관련 표면에서의 흡착에너지는 서로 비례(scaling)하므로, 단일 디스크립터(여기서는 최적 자리의
+$\dGCO$)가 활성 경향의 대부분을 포착하며, 최적값은 중간 결합 세기에서의 Sabatier 최대점이다.
+카바이드에서 탄소 $p$ 상태는 금속 $d$ 상태와 혼성하여 $d$-밴드를 이동시키는데, 이것이 WC의
+``백금 유사'' 거동~\cite{levy1973}과 Mo\textsubscript{2}C의 일산화탄소 선택성~\cite{porosoff2014}의
+미시적 기원이다. 페르미 준위에서의 금속성 상태밀도는 전극촉매의 전제 조건이므로, DFT로 금속성을
+검증하는 것은 필수적인 검증 단계이다.
+
+\section{결정을 위한 생성형 확산 모델}
+\textsc{MatterGen}~\cite{zeni2025}은 결정의 원자 좌표, 원자 종류, 격자를 동시에 잡음제거하는
+확산 모델로, 안정한 무기 화합물의 대규모 데이터베이스로 학습된다. 조건화는 물성 임베딩 어댑터를
+미세조정하여 분류기-자유 유도(classifier-free guidance)가 표본 추출을 목표값으로 편향시키도록
+이루어지며, 유도 강도 $w$는 다양성과 목표 적중률을 절충한다. 이것이 촉매적 목표와 \emph{경제적}
+목표를 모두 생성에 직접 내재화하는 데 활용하는 메커니즘이다.
+
+\section{기계학습 원자간 퍼텐셜}
+수천 개 후보에 대해 표면 자유에너지를 DFT로 평가하는 것은 불가능하다. 본 연구는 범용 기계학습
+원자간 퍼텐셜(MLIP)인 Universal Model for Atoms(UMA)~\cite{uma2025}를 사용하며, 그 촉매 거동은
+Open Catalyst 2020 데이터셋~\cite{chanussot2021}으로의 학습에서 비롯된다. MLIP는 DFT에 근접한
+흡착 에너지를 극히 적은 비용으로 제공하여, 저렴한 조성 대리지표와 완전한 DFT 사이의 중간 단계
+역할을 한다.
+
+\section{밀도범함수이론과 의사퍼텐셜}
+최종 검증은 평면파 코드 \textsc{Quantum ESPRESSO}~\cite{giannozzi2009}에 구현된 PBE 교환-상관
+범함수~\cite{pbe1996}를 사용하는 Kohn--Sham DFT로 수행하며, 의사퍼텐셜은 Standard Solid-State
+Pseudopotential(SSSP) 라이브러리~\cite{prandini2018}에서 가져온다. 고엔트로피 부격자의 배열
+무질서는 필요한 경우 특수 준무작위 구조(SQS)~\cite{zunger1990}로 표현한다.
+
+% =====================================================================
+\chapter{전산 방법론}
+\label{ch:methods}
+
+\noindent 발견 파이프라인은 정확도와 비용이 점증하는 5단계 깔때기이다(그림~\ref{fig:summary}a).
+각 단계를 아래에 기술한다.
+
+\section{Stage A --- 경제성 조건부 생성}
+기본 \textsc{MatterGen} 체크포인트를 9개 물성으로 미세조정하였다: 안정성(energy above hull),
+금속성(밴드갭을 0으로), 주요 일산화탄소 방출 디스크립터(최적 자리 CO 친화도와 CO 선택 자리
+분율), 이산화탄소 활성화(평균 *COOH 친화도), CO 대 H 선택성, 높은 혼합 엔트로피, 금속 충전
+대리지표, 그리고 결정적으로 \emph{고가 금속 분율}(백금족 Ru, Rh, Pd, Os, Ir, Pt 또는 중희토류인
+금속 원자의 분율)을 0으로 구동. 학습 라벨은 \texttt{alex\_mp\_20} 데이터셋의 모든 전이금속
+카바이드에 대해 문헌 기반 조성 대리지표로 계산하였다. 미세조정은 600 에폭 동안 수행했으며 검증
+손실은 그림~\ref{fig:loss}에 나타난다. 조건부 생성은 두 가지 유도 강도($w=1.0$, $w=2.5$)에서
+수행하여 1024개 후보 구조를 생성하였다.
+
+\section{Stage B --- 저비용 조성 스크리닝}
+모든 생성 구조를 조성 대리지표로 재평가하고, (i) 실제 전이금속 카바이드, (ii) CO 방출 영역 내,
+(iii) 고엔트로피($n_\mathrm{metal}\ge 3$, 혼합 엔트로피 $\ge\!1.0\,k_\mathrm{B}$), (iv) 경제적으로
+청정(고가 금속 분율 0)인 것을 보존하도록 필터링하였다. 이로써 후보군이 104개(고유 조성 90개)로
+좁혀졌다.
+
+\section{Stage C --- MLIP 표면 자유에너지 스크리닝}
+상위 24개 고유 조성에 대해 저지수 표면 종단(최대 밀러 지수 1)을 열거하고, 면별 가장 안정한
+종단을 하부 절반을 고정한 채 이완하였으며, 각 흡착물(*CO, *COOH, *H)을 대칭적으로 구분되는 모든
+자리에 배치하고 UMA 퍼텐셜~\cite{uma2025}로 흡착 슬랩을 이완하였다. 자유에너지는
+\ref{ch:theory}장의 CHE 표현을 따랐다. 기상 및 청정 슬랩 기준은 동일 퍼텐셜의 총에너지 헤드로
+일관되게 계산하여 슬랩 기여가 상쇄되도록 하였으며, 비물리적이고 미수렴된 자리($|\Delta G|>\SI{10}{eV}$)는
+제외하였다. 각 후보의 디스크립터는 \emph{모든} 계산된 면과 자리에 걸쳐 집계되며, 후보는 최적
+자리의 CO 최적점 근접도와 CO 선택 자리 밀도로 순위를 매겼다.
+
+\section{Stage D --- DFT 검증 및 전자구조}
+상위 6개 후보를 \textsc{Quantum ESPRESSO}~\cite{giannozzi2009}로 검증하였다: 가변 셀 이완, 이어서
+이완된 구조에 대한 자기무모순(SCF) 계산, 그리고 상태밀도(DOS) 계산. 파동함수 \SI{60}{Ry}, 전하밀도
+\SI{480}{Ry}의 평면파 컷오프와 Marzari--Vanderbilt 콜드 스미어링(\SI{0.02}{Ry}), 밀도
+$\sim\!\SI{30}{\angstrom}/a$의 Monkhorst--Pack $k$-격자를 사용하였다. C, Y, Zr, W에는 SSSP
+의사퍼텐셜~\cite{prandini2018}을, 희토류(La, Ce, Pr)에는 $4f$ 껍질을 코어에 고정한(3가) 노름보존
+의사퍼텐셜을 사용하였는데, 이는 이들 금속성 카바이드의 국소화된 $4f$ 상태에 물리적으로 적절하다.
+원소 투영 DOS는 수렴된 Kohn--Sham 상태를 원자 궤도에 투영(추가 SCF 없음)하여 얻었으며, 원소별로
+합산하여 각 부격자가 페르미 준위 상태에 기여하는 정도를 정량화하였다.
+
+\section{Stage A$'$ --- 고용체 슈퍼셀}
+명시적 화학 무질서를 표현하기 위해, 고엔트로피 숏리스트의 특수 준무작위 구조~\cite{zunger1990}를
+암염형(MC) 또는 육방정(M\textsubscript{2}C) 골격 위에 금속 부격자 쌍상관함수의 몬테카를로 정합으로
+구성하였다. 이들 슈퍼셀은 향후 명시적 무질서 표면 연구의 기질이다.
+
+\section{소프트웨어}
+구조 처리는 \texttt{pymatgen}~\cite{pymatgen2013}과 Atomic Simulation Environment~\cite{ase2017}를,
+MLIP 스크리닝은 \texttt{fairchem}/UMA 구현~\cite{uma2025}을 사용하였다.
+
+% =====================================================================
+\chapter{전산 결과}
+\label{ch:results}
+
+\section{생성과 발견 깔때기}
+미세조정은 원활하게 수렴하였으며(그림~\ref{fig:loss}), 조건부 생성은 1024개 구조를 생성하였고 그중
+1004개가 전이금속 카바이드이다. 이들의 조성-디스크립터 분포(그림~\ref{fig:genstats})는 경제성
+조건화가 효과적이었음을 보여준다: 고가 금속 분율이 후보군 전반에서 본질적으로 0이며, 금속 팔레트는
+저렴한 초기 전이금속과 경희토류(W, Y, Zr, Ce, La, Pr)가 지배한다. 저비용 스크리닝은 104개의 경제적
+일산화탄소 방출 고엔트로피 카바이드를 보존하였다. 전체 깔때기($1024 \rightarrow 1004 \rightarrow 90
+\rightarrow 24 \rightarrow 6$)는 그림~\ref{fig:summary}a에 요약된다.
+
+\section{MLIP 표면 스크리닝}
+UMA 표면 스크리닝은 24개 후보의 모든 저지수 면을 평가하였다(그림~\ref{fig:surface}). 선도 후보들의
+최적 자리 $\dGCO$는 CO 최적점의 수십 meV 이내에 위치하며, 최적 자리가 단일 선호 면이 아니라 다양한
+면에서 발견된다. 이는 유리한 자리를 분산시키려는 고엔트로피 설계 의도와 부합한다. 최적 자리에서 모두
+CO 대 H 선택적인 상위 6개 후보를 표~\ref{tab:master}에 정리한다.
+
+\section{DFT 검증: 안정성과 금속성}
+여섯 후보 모두 낮은 잔류 압력($|P|<\SI{0.5}{kbar}$)으로 이완되었으며, 페르미 준위에서 셀당
+\SIrange{1.7}{12.4}{states/eV} 범위의 유한한 상태밀도를 갖는 \emph{금속}이다(그림~\ref{fig:dos},
+표~\ref{tab:master}). 전극촉매의 전제 조건인 금속 전도성이 제일원리로 확인된다.
+
+\section{투영 상태밀도로 본 전도 특성}
+원소 투영 DOS(그림~\ref{fig:pdos})는 페르미 준위 상태를 \emph{어느} 부격자가 담당하는지 규명한다.
+두 가지 양상이 나타난다: 탄소가 풍부한 후보(Pr\textsubscript{3}Y\textsubscript{2}WC\textsubscript{7},
+Ce\textsubscript{2}Y\textsubscript{2}ZrWC\textsubscript{6})는 $\Ef$에서 탄소 $2p$ 특성이 지배적
+($\sim$60\%)이어서 전도성 카바이드 네트워크를 나타내는 반면, 텅스텐이 풍부한
+La\textsubscript{3}Y\textsubscript{5}(WC\textsubscript{3})\textsubscript{3}와 희토류가 없는
+Y\textsubscript{2}ZrWC\textsubscript{8}는 금속 $d$(Y/La/W)가 지배적이다. 원소별 비중은
+그림~\ref{fig:summary}d에 도시된다. 이러한 C-$p$/금속-$d$ 혼성 전도는 ``백금 유사'' 카바이드
+촉매에서 기대되는 전자적 특징과 정확히 일치한다~\cite{levy1973}.
+
+\section{종합 표}
+표~\ref{tab:master}는 여섯 최종 후보의 표면 활성 디스크립터와 DFT 검증을 종합하며, 해당 종합 그림은
+그림~\ref{fig:summary}이다.
+
+\begin{table}[t]
+\centering
+\caption{여섯 최종 경제적 고엔트로피 카바이드 후보의 종합 요약: 표면 일산화탄소 방출 디스크립터
+(UMA 스크리닝의 최적 자리 $\dGCO$), CO 대 H 선택성, 그리고 DFT로 검증한 페르미 에너지, $\Ef$에서의
+상태밀도, 지배 전도 원소, 잔류 압력. 여섯 모두 금속성이다.}
+\label{tab:master}
+\small
+\begin{tabular}{lccccccc}
+\toprule
+후보 & $\dGCO$ (eV) & CO$>$H & $\Ef$ (eV) & DOS($\Ef$) & 지배원소 & 금속성 & $P$ (kbar)\\
+\midrule
+Pr\textsubscript{3}Y\textsubscript{2}WC\textsubscript{7}                    & $-0.001$ & 예 & 12.00 & 7.4 & C & 예 & $+0.15$\\
+La\textsubscript{5}Y\textsubscript{4}W\textsubscript{2}C\textsubscript{9}   & $-0.001$ & 예 & 11.52 & 9.8 & C & 예 & $-0.10$\\
+Ce\textsubscript{2}Y\textsubscript{2}ZrWC\textsubscript{6}                  & $+0.007$ & 예 & 12.72 & 6.7 & C & 예 & $-0.29$\\
+La\textsubscript{3}Y\textsubscript{5}(WC\textsubscript{3})\textsubscript{3} & $-0.008$ & 예 & 12.24 & 12.4 & Y & 예 & $-0.32$\\
+Y\textsubscript{2}ZrWC\textsubscript{8}                                     & $-0.010$ & 예 & 10.52 & 1.7 & W & 예 & $+0.41$\\
+CeY\textsubscript{2}ZrWC\textsubscript{7}                                   & $-0.011$ & 예 & 12.85 & 3.3 & C & 예 & $-0.13$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ---- 그림 ----
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.92\textwidth]{fig_co2rr_pipeline_summary.pdf}
+\caption{종단간 발견 종합. (a) 1024개 생성 구조에서 6개 DFT 검증 금속성 후보까지의 발견 깔때기.
+(b) 스크리닝된 후보의 UMA 표면 일산화탄소 방출 디스크립터(상위 6개 강조). (c) 상위 6개의 페르미
+준위 DFT 상태밀도. (d) 원소 투영 전도 특성($\Ef$에서의 원소별 DOS 비중).}
+\label{fig:summary}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.78\textwidth]{fig4_composite_economic.pdf}
+\caption{경제성 조건부 생성 모델의 미세조정: 600 에폭에 걸친 학습/검증 손실 및 성분별(위치, 격자,
+원자종류) 손실.}
+\label{fig:loss}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_co2rr_generation_stats.pdf}
+\caption{생성된 카바이드 후보군의 조성 통계: (a) CO 방출 영역과 함께 본 최적 자리 CO 친화도;
+(b,c) 디스크립터 상관; (d) 금속 개수 분포; (e) 고가 금속 분율(경제성 제약); (f) CO\textsubscript{2}RR
+선택성.}
+\label{fig:genstats}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_co2rr_surface_screen.pdf}
+\caption{UMA 표면 스크리닝: (a) 최적 자리의 CO 최적점 근접도로 순위를 매긴 후보; (b) CO 방출 영역과
+함께 본 통합 $\dGCO$ 분포; (c) CO 대 H\textsubscript{2} 선택성($\dGCOOH$ 대 $\dGH$).}
+\label{fig:surface}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_co2rr_qe_pdos.pdf}
+\caption{여섯 DFT 검증 후보의 원소 투영 상태밀도(PDOS), $E-\Ef$ 기준. $\Ef$(파선)에서의 유한 상태가
+금속성을 확인하며, 원소별 분해가 전도 특성을 규명한다.}
+\label{fig:pdos}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.9\textwidth]{fig_co2rr_qe_dos.pdf}
+\caption{페르미 준위 부근 여섯 후보의 총 상태밀도(DFT, PBE).}
+\label{fig:dos}
+\end{figure}
+
+% =====================================================================
+\chapter{계획된 실험 검증}
+\label{ch:experiment}
+
+\noindent 전산 파이프라인은 구체적이고 반증 가능한 예측을 제시한다: 여섯 후보는 (i) 단일상 금속성
+카바이드로 합성 가능하고 (ii) HER을 능가하는 선택성으로 이산화탄소를 일산화탄소로 전기환원해야
+한다. 본 장은 이를 시험하기 위해 설계된 실험 프로그램을 명시한다. 결과는 캠페인 완료 시 보고한다.
+
+\section{소재 합성}
+숏리스트의 고엔트로피 카바이드는 볼밀링된 금속/산화물 전구체의 고온 탄화(또는 아크 용융 후 탄화)로
+합성하여 SQS 예측의 거의 등몰 금속 부격자를 목표로 한다. 상 순도와 단일상 암염형/육방정 구조는
+분말 X선 회절(XRD)로, 금속 분포의 균질성은 SEM/EDS 및 STEM-EDS 매핑으로, 표면 조성/산화 상태는
+X선 광전자 분광법(XPS)으로 검증한다. \tbu{합성 및 구조 분석}
+
+\section{전기화학 CO\texorpdfstring{$_2$}{2}RR 시험}
+촉매 잉크를 기체확산 또는 유리질 탄소 전극에 드롭캐스트하고, CO\textsubscript{2} 포화 수용성
+중탄산염 전해질에서 기밀 H-셀(및 높은 전류밀도를 위한 MEA/흐름 셀)로 시험한다. 일련의 인가
+전위에서의 선형 주사 전압전류법과 정전위법으로 부분 전류밀도를 정량화하며, 기하학적 및 전기화학적
+활성 표면적으로 규격화한 활성을 보고한다. \tbu{분극 곡선 및 전위별 패러데이 효율}
+
+\section{생성물 분석}
+\begin{itemize}[nosep]
+\item \textbf{기체 생성물(CO, H\textsubscript{2}, 잔류 CO\textsubscript{2}).} 셀 헤드스페이스/출구를
+가스 크로마토그래프(TCD + 메탄화기 부착 FID)로 온라인 샘플링하여 CO와 H\textsubscript{2}를 정량하고
+이로부터 CO 패러데이 효율과 CO/H\textsubscript{2} 선택성을 산출하며, CO\textsubscript{2} 전환율은
+입구/출구 물질수지로 추적한다. 온라인 미분 전기화학 질량분석(DEMS)으로 전위 분해된 CO/H\textsubscript{2}
+개시를 제공한다. \tbu{GC/DEMS 기체 생성물 정량}
+\item \textbf{액상 생성물.} 음극액은 물 억제와 내부 표준(예: DMSO/DSS)을 적용한 정량
+\textsuperscript{1}H 핵자기공명(NMR) 분광법으로 분석하여 폼산 또는 미량 액상 생성물을 검출/정량하고,
+예상되는 2전자 일산화탄소 경로의 우세를 확인한다. \tbu{\textsuperscript{1}H NMR 액상 생성물 정량}
+\item \textbf{흡착 중간체.} In-situ 감쇠 전반사 표면증강 적외선 흡수 분광법(ATR-SEIRAS / FT-IR)으로
+전위에 따른 *COOH 및 선형/브리지 결합 *CO 밴드를 검출하여, 계산된 $\dGCOOH$ 및 $\dGCO$ 디스크립터와
+직접적인 메커니즘적 연결을 제공한다. \tbu{*COOH/*CO 중간체의 in-situ FT-IR}
+\end{itemize}
+
+\section{안정성 및 사후 분석}
+장시간 전기분해로 내구성을 평가하고, 시험 전후의 XRD, XPS, 현미경으로 표면 산화, 희토류 성분의 용출,
+카바이드 네트워크 무결성을 조사한다. \tbu{내구성 및 사후 특성 분석}
+
+\section{검증 논리}
+실험은 전산 예측을 항목별로 시험하도록 설계된다: 금속 전도성(4단자 탐침/전기화학 임피던스)을 DFT DOS와,
+CO 선택성(GC/NMR)을 계산된 $\dGCO$ 및 $\dGCOOH<\dGH$ 선택성 기준과, 메커니즘 중간체(FT-IR)를
+디스크립터 사다리와 대조한다. 예측-측정 비교표는 완료 시 보고한다(표~\ref{tab:expt}).
+
+\begin{table}[t]
+\centering
+\caption{전산 예측과 실험 관측량의 계획된 비교.}
+\label{tab:expt}
+\small
+\begin{tabular}{lll}
+\toprule
+예측 (본 연구) & 실험적 검증 수단 & 상태\\
+\midrule
+단일상 HEC, 등몰 금속 & XRD, STEM-EDS & \tbu{결과}\\
+금속성($\Ef$에서 유한 DOS) & 4단자/EIS & \tbu{결과}\\
+CO 선택성, $\dGCOOH<\dGH$ & GC, \textsuperscript{1}H NMR, FE & \tbu{결과}\\
+*COOH$\rightarrow$*CO 경로 & in-situ FT-IR & \tbu{결과}\\
+CO\textsubscript{2} 전환율 & 입출구 GC 수지 & \tbu{결과}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =====================================================================
+\chapter{고찰}
+\label{ch:discussion}
+
+\section{이 파이프라인을 채택한 이유와 그 이점}
+본 논문의 핵심 방법론적 주장은 \emph{경제성 제약이 생성 단계에 속한다}는 것이다. 확산 모델을 고가
+금속 분율 라벨로 미세조정하고 0으로 유도함으로써, 저렴한 부분공간이 \emph{구성적으로} 표본
+추출되며, 이는 그것이 희소한 무제약 후보군을 필터링하여 발견하는 방식과 대비된다. 그 결과 깔때기는
+$\sim$10\textsuperscript{3}개 후보를 조사하면서도 DFT는 6개 구조에만 사용하며, 각 단계(조성 대리지표
+$\rightarrow$ MLIP $\rightarrow$ DFT)는 이전 단계가 이미 탐색 공간의 대부분을 제거한 곳에 정확도를
+더한다. 이는 일반화 가능한 틀이다: 조건화 디스크립터를 교체하면 동일한 기계가 다른 반응으로 재조준된다.
+
+\section{후보의 해석}
+여섯 후보 모두 저렴한 초기 전이금속(Y, Zr, W)을 경희토류(La, Ce, Pr)와 카바이드 금속 부격자 위에서
+결합한다. DFT로 규명한 전도 특성(그림~\ref{fig:pdos})은 탄소 $2p$ 네트워크 금속에서 금속 $d$ 금속까지의
+연속을 보이며, 이는 탄소가 금속 $d$ 상태를 재구성하는 ``백금 유사'' 그림~\cite{levy1973}을 반영한다.
+거의 열중성인 $\dGCO$와 $\dGCOOH<\dGH$ 선택성은 이들 소재를 Au/Ag/Zn을 CO 선택적으로 만드는 동일한
+디스크립터 영역에 위치시키되~\cite{hori2008}, 지구상에 풍부한 구성원소로 구현한다---이것이 바로 설계
+목표이다. 고엔트로피 합금이 실험적 CO\textsubscript{2}/CO 환원 촉매로 성공한 점~\cite{nellaiappan2020,batchelor2019}과
+Mo\textsubscript{2}C가 선택적 CO\textsubscript{2}-to-CO에 성공한 점~\cite{porosoff2014}은 카바이드+HEC
+경로의 외적 타당성을 뒷받침한다.
+
+\section{한계와 정직한 유의점}
+몇 가지 유의점을 명시해야 한다. (i) 경희토류(La, Ce, Pr, Y)는 선택한 디스크립터상 경제적으로 ``저렴''
+하지만, 희토류 카바이드는 이례적인 CO\textsubscript{2}RR 촉매이며 친산소성이고 공기/수분에 민감할 수
+있다. 실험적 견고성은 계획된 안정성 시험이 직접 다루는 미해결 문제이다. (ii) MLIP 표면 스크리닝은 기준
+오차를 상쇄하도록 보정되었지만, 학습 분포의 대부분 바깥에 있는 희토류 카바이드 표면을 평가한다. 특히
+강하게 결합한 *COOH 에너지는 정성적으로 읽어야 하며, 활성 순위는 더 견고한 $\dGCO$ 디스크립터에 의존한다.
+(iii) Stage A--B에 사용된 조성 대리지표는 정량 예측이 아니라 거친 필터링을 위한 문헌 기반 추정치이다.
+(iv) DFT는 희토류 $4f$ 전자를 고정된 3가 코어로 취급한다. 이는 이들 금속성 카바이드에 적절하지만,
+$f$-상태에 민감한 물성에는 $4f$-원자가 또는 DFT$+U$ 처리가 필요하다. (v) 현재 DFT는 \emph{벌크} 안정성과
+금속성을 검증한다. DFT에서의 명시적 무질서 \emph{표면} 자유에너지(Stage A$'$의 SQS 슈퍼셀 위)는 여기서
+보고한 MLIP 수준 표면 스크리닝을 넘어서는 자연스러운 다음 전산 단계이다. 이러한 한계는
+\ref{ch:experiment}장의 실험 캠페인을 약화시키기보다 동기를 부여하며, 실험이 예측의 심판자이다.
+
+\section{전망}
+여섯 후보의 확인을 넘어, 파이프라인은 실험 및 상위 수준 DFT 데이터가 조성 대리지표와 MLIP를 재보정하여
+연속 세대를 정밀화하는 능동학습(active-learning) 루프를 지원한다. 동일한 경제성 조건부 생성기는 조건화
+디스크립터를 변경함으로써 CO\textsubscript{2}-to-폼산 또는 다중 탄소 생성물로 재조준될 수 있다.
+
+% =====================================================================
+\chapter{결론}
+\label{ch:conclusion}
+
+본 논문은 경제성 제약을 물성 조건부 확산 모델에 직접 내재화하고 그 결과를 기계학습 퍼텐셜과 제일원리
+DFT의 깔때기로 검증함으로써, CO\textsubscript{2}-to-CO 반응을 위한 \emph{저렴한} 고엔트로피 카바이드
+촉매를 설계하는 종단간 생성형 파이프라인을 구축하고 적용하였다. 1024개 생성 구조에서 6개의 백금족
+금속이 없는 고엔트로피 카바이드가 도출되었고, 각각은 수소 대비 일산화탄소 선택성을 갖는 거의 열중성의
+CO 자리를 가질 것으로 예측되며, 모두 DFT로 탄소-$p$/금속-$d$ 혼성 전도 특성을 갖는 금속임이 확인되었다.
+이 예측을 시험하기 위해 합성, 전기화학 CO\textsubscript{2}RR, 온라인 가스 분석, \textsuperscript{1}H NMR,
+in-situ FT-IR로 이루어진 완전한 실험 검증 프로그램을 설계하였으며, 그 결과가 본 연구를 완성할 것이다.
+더 넓은 기여는 촉매 발견에서 경제성을 \emph{생성적} 설계 목표로 삼을 수 있음을 재사용 가능하게 입증한
+것이다.
+
+% =====================================================================
+\begin{thebibliography}{99}
+\setlength{\itemsep}{2pt}
+
+\bibitem{zeni2025} C.~Zeni, R.~Pinsler, D.~Z\"ugner, A.~Fowler, M.~Horton, X.~Fu, Z.~Wang,
+A.~Shysheya, J.~Crabb\'e, S.~Shysheya, \emph{et al.},
+``A generative model for inorganic materials design,''
+\emph{Nature} \textbf{639}, 624--632 (2025). doi:10.1038/s41586-025-08628-5.
+
+\bibitem{uma2025} B.~M.~Wood, M.~Dzamba, X.~Fu, M.~Gao, M.~Shuaibi, L.~Barroso-Luque,
+K.~Abdelmaqsoud, V.~Gharakhanyan, J.~R.~Kitchin, \emph{et al.},
+``UMA: A Family of Universal Models for Atoms,'' arXiv:2506.23971 (2025).
+
+\bibitem{chanussot2021} L.~Chanussot, A.~Das, S.~Goyal, T.~Lavril, M.~Shuaibi, M.~Riviere,
+K.~Tran, J.~Heras-Domingo, C.~Ho, W.~Hu, \emph{et al.},
+``Open Catalyst 2020 (OC20) Dataset and Community Challenges,''
+\emph{ACS Catal.} \textbf{11}, 6059--6072 (2021). doi:10.1021/acscatal.0c04525.
+
+\bibitem{giannozzi2009} P.~Giannozzi, S.~Baroni, N.~Bonini, M.~Calandra, R.~Car, C.~Cavazzoni,
+D.~Ceresoli, G.~L.~Chiarotti, M.~Cococcioni, I.~Dabo, \emph{et al.},
+``QUANTUM ESPRESSO: a modular and open-source software project for quantum simulations of
+materials,'' \emph{J. Phys.: Condens. Matter} \textbf{21}, 395502 (2009).
+doi:10.1088/0953-8984/21/39/395502.
+
+\bibitem{prandini2018} G.~Prandini, A.~Marrazzo, I.~E.~Castelli, N.~Mounet, N.~Marzari,
+``Precision and efficiency in solid-state pseudopotential calculations,''
+\emph{npj Comput. Mater.} \textbf{4}, 72 (2018). doi:10.1038/s41524-018-0127-2.
+
+\bibitem{pbe1996} J.~P.~Perdew, K.~Burke, M.~Ernzerhof,
+``Generalized Gradient Approximation Made Simple,''
+\emph{Phys. Rev. Lett.} \textbf{77}, 3865--3868 (1996). doi:10.1103/PhysRevLett.77.3865.
+
+\bibitem{norskov2004} J.~K.~N\o{}rskov, J.~Rossmeisl, A.~Logadottir, L.~Lindqvist,
+J.~R.~Kitchin, T.~Bligaard, H.~J\'onsson,
+``Origin of the Overpotential for Oxygen Reduction at a Fuel-Cell Cathode,''
+\emph{J. Phys. Chem. B} \textbf{108}, 17886--17892 (2004). doi:10.1021/jp047349j.
+
+\bibitem{nitopi2019} S.~Nitopi, E.~Bertheussen, S.~B.~Scott, X.~Liu, A.~K.~Engstfeld, S.~Horch,
+B.~Seger, I.~E.~L.~Stephens, K.~Chan, C.~Hahn, J.~K.~N\o{}rskov, T.~F.~Jaramillo, I.~Chorkendorff,
+``Progress and Perspectives of Electrochemical CO\textsubscript{2} Reduction on Copper in Aqueous
+Electrolyte,'' \emph{Chem. Rev.} \textbf{119}, 7610--7672 (2019).
+doi:10.1021/acs.chemrev.8b00705.
+
+\bibitem{hori2008} Y.~Hori, ``Electrochemical CO\textsubscript{2} Reduction on Metal Electrodes,''
+in \emph{Modern Aspects of Electrochemistry}, vol.~42, eds.\ C.~G.~Vayenas \emph{et al.},
+Springer, New York, pp.~89--189 (2008). doi:10.1007/978-0-387-49489-0\_3.
+
+\bibitem{batchelor2019} T.~A.~A.~Batchelor, J.~K.~Pedersen, S.~H.~Winther, I.~E.~Castelli,
+K.~W.~Jacobsen, J.~Rossmeisl,
+``High-Entropy Alloys as a Discovery Platform for Electrocatalysis,''
+\emph{Joule} \textbf{3}, 834--845 (2019). doi:10.1016/j.joule.2018.12.015.
+
+\bibitem{nellaiappan2020} S.~Nellaiappan, N.~K.~Katiyar, R.~Kumar, A.~Parui, K.~D.~Malviya,
+K.~G.~Pradeep, A.~K.~Singh, S.~Sharma, C.~S.~Tiwary, K.~Biswas,
+``High-Entropy Alloys as Catalysts for the CO\textsubscript{2} and CO Reduction Reactions:
+Experimental Realization,'' \emph{ACS Catal.} \textbf{10}, 3658--3663 (2020).
+doi:10.1021/acscatal.9b04302.
+
+\bibitem{levy1973} R.~B.~Levy, M.~Boudart,
+``Platinum-Like Behavior of Tungsten Carbide in Surface Catalysis,''
+\emph{Science} \textbf{181}, 547--549 (1973). doi:10.1126/science.181.4099.547.
+
+\bibitem{porosoff2014} M.~D.~Porosoff, X.~Yang, J.~A.~Boscoboinik, J.~G.~Chen,
+``Molybdenum Carbide as Alternative Catalysts to Precious Metals for Highly Selective Reduction of
+CO\textsubscript{2} to CO,'' \emph{Angew. Chem. Int. Ed.} \textbf{53}, 6705--6709 (2014).
+doi:10.1002/anie.201404109.
+
+\bibitem{sarker2018} P.~Sarker, T.~Harrington, C.~Toher, C.~Oses, M.~Samiee, J.-P.~Maria,
+D.~W.~Brenner, K.~S.~Vecchio, S.~Curtarolo,
+``High-entropy high-hardness metal carbides discovered by entropy descriptors,''
+\emph{Nat. Commun.} \textbf{9}, 4980 (2018). doi:10.1038/s41467-018-07160-7.
+
+\bibitem{zunger1990} A.~Zunger, S.-H.~Wei, L.~G.~Ferreira, J.~E.~Bernard,
+``Special quasirandom structures,'' \emph{Phys. Rev. Lett.} \textbf{65}, 353--356 (1990).
+doi:10.1103/PhysRevLett.65.353.
+
+\bibitem{pymatgen2013} S.~P.~Ong, W.~D.~Richards, A.~Jain, G.~Hautier, M.~Kocher, S.~Cholia,
+D.~Gunter, V.~L.~Chevrier, K.~A.~Persson, G.~Ceder,
+``Python Materials Genomics (pymatgen): A robust, open-source python library for materials
+analysis,'' \emph{Comput. Mater. Sci.} \textbf{68}, 314--319 (2013).
+doi:10.1016/j.commatsci.2012.10.028.
+
+\bibitem{ase2017} A.~Hjorth Larsen, J.~J.~Mortensen, J.~Blomqvist, I.~E.~Castelli, R.~Christensen,
+M.~Du\l{}ak, J.~Friis, M.~N.~Groves, B.~Hammer, C.~Hargus, \emph{et al.},
+``The atomic simulation environment---a Python library for working with atoms,''
+\emph{J. Phys.: Condens. Matter} \textbf{29}, 273002 (2017). doi:10.1088/1361-648X/aa680e.
+
+\end{thebibliography}
+
+\end{document}

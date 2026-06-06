@@ -1,0 +1,7 @@
+formula,best_dG_CO,frac_co_selective,co_selective_over_h,E_fermi_eV,dos_at_Ef,metallic,dominant,P_kbar
+Pr3Y2WC6,-0.0009,0.2143,True,12.0039,7.44,True,C,0.15
+La5Y4W2C9,-0.0012,0.1364,True,11.5226,9.82,True,C,-0.1
+Ce2Y2ZrWC6,0.0071,0.1071,True,12.7204,6.71,True,C,-0.29
+La3Y5(WC3)3,-0.0081,0.1667,True,12.2408,12.42,True,Y,-0.32
+Y2ZrWC8,-0.0098,0.1923,True,10.5208,1.7,True,W,0.41
+CeY2ZrWC7,-0.0111,0.1591,True,12.852,3.3,True,C,-0.13

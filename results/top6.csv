@@ -1,0 +1,7 @@
+formula,source,best_dG_CO,abs_CO,frac_co_selective,min_dG_COOH,min_dG_H,co_selective_over_h,limiting_potential_V
+Pr3Y2WC6,Pr3Y2WC6__w2p5_chunk_2_gen_2.cif,-0.0009,0.0009,0.2143,-7.2363,-2.2563,True,-7.2354
+La5Y4W2C9,La5Y4W2C9__w1p0_chunk_3_gen_78.cif,-0.0012,0.0012,0.1364,-5.3822,-4.5977,True,-5.381
+Ce2Y2ZrWC6,Ce2Y2ZrWC6__w2p5_chunk_0_gen_0.cif,0.0071,0.0071,0.1071,-6.6301,-3.4198,True,-6.6372
+La3Y5(WC3)3,La3Y5(WC3)3__w1p0_chunk_0_gen_84.cif,-0.0081,0.0081,0.1667,-3.3696,-1.0453,True,-3.3615
+Y2ZrWC8,Y2ZrWC8__w2p5_chunk_2_gen_109.cif,-0.0098,0.0098,0.1923,-4.0746,-2.0182,True,-4.0649
+CeY2ZrWC7,CeY2ZrWC7__w2p5_chunk_0_gen_91.cif,-0.0111,0.0111,0.1591,-4.1719,-1.7492,True,-4.1608

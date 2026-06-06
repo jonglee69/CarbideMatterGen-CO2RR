@@ -1,0 +1,36 @@
+# --- Python ---
+__pycache__/
+*.pyc
+*.egg-info/
+.ipynb_checkpoints/
+
+# --- environments ---
+.venv/
+.venv_*/
+
+# --- large generated data (regenerable; NOT pushed) ---
+outputs/
+cache/
+datasets/
+checkpoints/
+models/
+*.ckpt
+*.tgz
+*.zip
+data/*.csv
+data/*.log
+logs/
+
+# --- LaTeX build artifacts (keep .tex and the final main*.pdf) ---
+thesis/*.aux
+thesis/*.log
+thesis/*.out
+thesis/*.toc
+thesis/*.bbl
+thesis/*.blg
+thesis/*.fls
+thesis/*.synctex.gz
+thesis/*pass*.log
+thesis/ko_*.log
+
+# Tracked on purpose: figures/, results/, thesis/*.tex, thesis/main*.pdf

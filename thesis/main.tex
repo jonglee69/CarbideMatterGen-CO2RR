@@ -1,0 +1,617 @@
+% =====================================================================
+%  M.Sc. Thesis  --  Hyun-Ju Lee
+%  Generative discovery and DFT validation of economical high-entropy
+%  carbide electrocatalysts for the CO2-to-CO reduction reaction
+%
+%  Compile:  pdflatex main && pdflatex main   (run twice for refs/ToC)
+%  Figures are read from ../figures/ (the CarbideMatterGen pipeline output).
+% =====================================================================
+\documentclass[11pt,a4paper]{report}
+
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\graphicspath{{../figures/}}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+% --- lightweight stand-ins for siunitx (avoids a package dependency) ---
+\providecommand{\SI}[2]{#1\,#2}
+\providecommand{\SIrange}[3]{#1--#2\,#3}
+\providecommand{\si}[1]{#1}
+\providecommand{\angstrom}{\mbox{\AA}}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage[hidelinks]{hyperref}
+\usepackage{microtype}
+\usepackage{enumitem}
+
+% --- a visible tag for results awaiting the experimental campaign ---
+\newcommand{\tbu}[1]{\textcolor{red!70!black}{\textbf{[#1 -- to be updated upon experimental completion]}}}
+\newcommand{\dGCO}{\Delta G_{\mathrm{CO^*}}}
+\newcommand{\dGH}{\Delta G_{\mathrm{H^*}}}
+\newcommand{\dGCOOH}{\Delta G_{\mathrm{COOH^*}}}
+\newcommand{\Ef}{E_\mathrm{F}}
+
+\title{\bfseries Generative Discovery and First-Principles Validation of\\
+Economical High-Entropy Carbide Electrocatalysts\\
+for the Electrochemical CO\textsubscript{2}-to-CO Reduction Reaction}
+\author{Hyun-Ju Lee \\[4pt]
+\small Advisor: [Advisor Name]\\
+\small [Department], [University]}
+\date{June 2026}
+
+\begin{document}
+\maketitle
+
+% =====================================================================
+\begin{abstract}
+\noindent
+The electrochemical reduction of carbon dioxide to carbon monoxide (CO\textsubscript{2}RR-to-CO)
+is a key step toward closing the anthropogenic carbon cycle, but the most selective known
+catalysts (Au, Ag) are scarce and expensive. This thesis develops and applies an end-to-end
+\emph{generative} discovery pipeline that searches directly for \emph{economical} CO-evolving
+catalysts within the chemical space of high-entropy transition-metal carbides (HECs). A
+property-conditioned diffusion model (a fine-tuned \textsc{MatterGen}) is steered toward
+stable, metallic, CO-releasing and platinum-group-metal-free compositions; the generated pool
+is funneled through composition proxies, a machine-learned interatomic-potential (UMA)
+surface free-energy screen, and density-functional-theory (DFT) validation in
+\textsc{Quantum ESPRESSO}. Starting from 1024 generated structures the pipeline converges on
+six candidate HECs (Pr\textsubscript{3}Y\textsubscript{2}WC\textsubscript{7},
+La\textsubscript{5}Y\textsubscript{4}W\textsubscript{2}C\textsubscript{9},
+Ce\textsubscript{2}Y\textsubscript{2}ZrWC\textsubscript{6},
+La\textsubscript{3}Y\textsubscript{5}(WC\textsubscript{3})\textsubscript{3},
+Y\textsubscript{2}ZrWC\textsubscript{8},
+CeY\textsubscript{2}ZrWC\textsubscript{7}), each predicted to host a near-thermoneutral CO
+site ($|\dGCO|\lesssim\SI{0.02}{eV}$) and CO-over-H selectivity. DFT confirms all six are
+metallic; projected densities of states resolve the conduction character as a carbon-$2p$
+network hybridized with the metal $d$ sublattice. A complementary experimental validation
+campaign---materials synthesis, electrochemical CO\textsubscript{2}RR testing, on-line
+gas analysis for CO/CO\textsubscript{2}, \textsuperscript{1}H NMR for liquid products, and
+(in-situ) FT-IR for adsorbed intermediates---is designed and presented; the corresponding
+results are reserved for completion. The work demonstrates that economic constraints can be
+embedded \emph{at the generative stage}, shifting catalyst discovery from screening known
+materials toward designing affordable new ones.
+\par\vspace{6pt}
+\noindent\textbf{Keywords:} CO\textsubscript{2} reduction; high-entropy carbides; generative
+models; machine-learned interatomic potentials; density functional theory; non-precious
+electrocatalysts.
+\end{abstract}
+
+\tableofcontents
+
+% =====================================================================
+\chapter{Introduction}
+\label{ch:intro}
+
+\section{Motivation: affordable CO\texorpdfstring{$_2$}{2}-to-CO conversion}
+Electrochemical CO\textsubscript{2} reduction (CO\textsubscript{2}RR) powered by renewable
+electricity offers a route to convert a waste greenhouse gas into chemical feedstocks. Among
+the accessible products, carbon monoxide is one of the most technologically valuable: it is the
+two-electron product with the highest demonstrated selectivity and is the entry point to
+Fischer--Tropsch and carbonylation chemistry. The selectivity of a metal electrode for CO is
+governed by how strongly it binds the key intermediates \mbox{*COOH} and *CO relative to
+adsorbed hydrogen *H; the classic survey of metal electrodes by Hori established that Au, Ag and
+Zn are the principal CO-evolving metals, whereas Cu uniquely proceeds to hydrocarbons and most
+other metals favor the competing hydrogen-evolution reaction (HER)~\cite{hori2008}. The
+mechanistic basis of this behavior on copper, and the central role of the *COOH and *CO
+descriptors, is reviewed comprehensively by Nitopi \emph{et al.}~\cite{nitopi2019}.
+
+The difficulty is economic rather than purely chemical: the most CO-selective metals (Au, Ag)
+are scarce and costly, which is incompatible with the terawatt scale at which CO\textsubscript{2}
+conversion would need to operate to matter for climate. There is therefore a pressing need for
+catalysts that reproduce the favorable adsorption-energy landscape of the coinage metals using
+earth-abundant elements.
+
+\section{Why high-entropy carbides}
+Two materials-design ideas are combined in this thesis. First, transition-metal carbides (TMCs)
+have long been known to display ``platinum-like'' surface chemistry: the seminal observation of
+Levy and Boudart that tungsten carbide mimics platinum in several catalytic
+reactions~\cite{levy1973} initiated decades of work on TMCs as inexpensive substitutes for
+precious metals, and molybdenum carbide in particular is an established, selective catalyst for
+reducing CO\textsubscript{2} to CO~\cite{porosoff2014}. Carbon donates electron density into the
+metal $d$ band and reshapes the surface density of states, tuning adsorption strengths into
+useful windows.
+
+Second, \emph{high-entropy} materials---near-equimolar solid solutions of four or more
+elements---provide a near-continuous distribution of local adsorption environments. Batchelor
+\emph{et al.}\ argued that this continuum is precisely what an electrocatalyst needs, because a
+small fraction of optimally-binding sites can dominate the measured
+activity~\cite{batchelor2019}; high-entropy alloys have since been realized experimentally as
+CO\textsubscript{2}/CO reduction catalysts~\cite{nellaiappan2020}. High-entropy carbides are
+synthesizable single-phase materials in their own right, as demonstrated by the
+entropy-descriptor discovery of refractory five-metal carbides~\cite{sarker2018}. Combining the
+carbide ``platinum-like'' electronic structure with high-entropy site diversity---while
+restricting the palette to cheap metals---defines the search space of this work.
+
+\section{Why a generative pipeline}
+Conventional computational catalyst discovery screens \emph{existing} databases. The combinatorial
+space of multi-metal carbides is far too large to enumerate, and the affordable subset is sparse
+within it. We instead adopt a \emph{generative} strategy: a diffusion model that has learned the
+distribution of stable inorganic crystals~\cite{zeni2025} is fine-tuned so that its sampling is
+\emph{steered} toward the target property values---including an explicit \emph{economic}
+constraint that penalizes platinum-group and heavy-rare-earth content. Affordability thus becomes
+a generation objective rather than a post-hoc filter. Because the model proposes novel structures,
+the expensive part of discovery (DFT) is reserved for a handful of already-promising candidates,
+reached through a funnel of increasingly accurate but increasingly costly evaluators.
+
+\section{Objectives and structure}
+The objectives of this thesis are: (i) to construct an economic-constrained generative pipeline
+for CO\textsubscript{2}RR-to-CO HEC catalysts; (ii) to validate the top candidates with
+first-principles DFT for stability and metallic conductivity, resolving the orbital character of
+the conduction states; and (iii) to design the experimental campaign that will confirm the
+computational predictions. Chapter~\ref{ch:theory} reviews the theoretical background;
+Chapter~\ref{ch:methods} details the computational methodology; Chapter~\ref{ch:results} presents
+the computational results; Chapter~\ref{ch:experiment} sets out the planned experimental
+validation; Chapter~\ref{ch:discussion} discusses the findings and limitations; and
+Chapter~\ref{ch:conclusion} concludes.
+
+% =====================================================================
+\chapter{Theoretical Background}
+\label{ch:theory}
+
+\section{Thermodynamics of CO\texorpdfstring{$_2$}{2}-to-CO and the computational hydrogen electrode}
+The two-electron pathway to CO proceeds through a single carboxyl intermediate,
+\begin{align}
+\mathrm{CO_2(g)} + \mathrm{H^+} + e^- + {*} &\rightarrow \mathrm{*COOH},\\
+\mathrm{*COOH} + \mathrm{H^+} + e^- &\rightarrow \mathrm{*CO} + \mathrm{H_2O},\\
+\mathrm{*CO} &\rightarrow \mathrm{CO(g)} + {*}.
+\end{align}
+Reaction free energies of the electrochemical steps are evaluated with the computational
+hydrogen electrode (CHE) of N\o{}rskov \emph{et al.}~\cite{norskov2004}, in which the chemical
+potential of a proton--electron pair is referenced to gas-phase H\textsubscript{2} at
+\SI{0}{V} versus the reversible hydrogen electrode:
+\begin{equation}
+\mu(\mathrm{H^+}) + \mu(e^-) = \tfrac{1}{2}\,\mu(\mathrm{H_2}) - eU .
+\end{equation}
+The adsorption free energies used throughout are
+\begin{align}
+\dGCO   &= E(\mathrm{*CO})   - E(*) - E(\mathrm{CO_{(g)}}) + \Delta_{\mathrm{CO}},\\
+\dGCOOH &= E(\mathrm{*COOH}) - E(*) - E(\mathrm{CO_{2(g)}}) - \tfrac12 E(\mathrm{H_{2(g)}}) + \Delta_{\mathrm{COOH}},\\
+\dGH    &= E(\mathrm{*H})    - E(*) - \tfrac12 E(\mathrm{H_{2(g)}}) + \Delta_{\mathrm{H}},
+\end{align}
+where the $\Delta$ terms are standard zero-point and entropic corrections. A good CO-evolving
+site requires $\dGCO$ near zero (CO is released as product rather than poisoning the surface),
+$\dGCOOH$ low enough to activate CO\textsubscript{2}, and---crucially for selectivity---%
+$\dGCOOH < \dGH$, so that CO\textsubscript{2}RR out-competes HER.
+
+\section{Descriptors, the Sabatier principle and carbides}
+Because adsorption energies on related surfaces scale with one another, a single descriptor
+(here the best-site $\dGCO$) captures most of the activity trend, and the optimum is a Sabatier
+maximum at intermediate binding. In carbides, carbon $p$ states hybridize with metal $d$ states
+and shift the $d$-band, which is the microscopic origin of the ``platinum-like'' behavior of
+WC~\cite{levy1973} and of the CO selectivity of Mo\textsubscript{2}C~\cite{porosoff2014}. A
+metallic density of states at the Fermi level is a prerequisite for an electrocatalyst, so
+verifying metallicity by DFT is an essential validation step.
+
+\section{Generative diffusion models for crystals}
+\textsc{MatterGen}~\cite{zeni2025} is a diffusion model that jointly denoises the atomic
+coordinates, atom types and lattice of a crystal, trained on a large database of stable
+inorganic compounds. Conditioning is achieved by fine-tuning property-embedding adapters so that
+classifier-free guidance biases sampling toward target values of one or more properties; the
+guidance strength $w$ trades diversity against on-target yield. This is the mechanism we exploit
+to embed both catalytic and \emph{economic} targets directly into generation.
+
+\section{Machine-learned interatomic potentials}
+Evaluating surface free energies for thousands of candidates by DFT is intractable. We use a
+universal machine-learned interatomic potential (MLIP), the Universal Model for Atoms
+(UMA)~\cite{uma2025}, whose catalysis behavior derives from training on the Open Catalyst 2020
+dataset~\cite{chanussot2021}. The MLIP provides near-DFT adsorption energetics at a tiny fraction
+of the cost, serving as the intermediate rung between cheap composition proxies and full DFT.
+
+\section{Density functional theory and pseudopotentials}
+Final validation uses Kohn--Sham DFT with the PBE exchange--correlation
+functional~\cite{pbe1996} as implemented in the plane-wave code
+\textsc{Quantum ESPRESSO}~\cite{giannozzi2009}, with pseudopotentials from the Standard
+Solid-State Pseudopotential (SSSP) library~\cite{prandini2018}. Configurational disorder of the
+high-entropy sublattice is represented, where required, by special quasirandom structures
+(SQS)~\cite{zunger1990}.
+
+% =====================================================================
+\chapter{Computational Methodology}
+\label{ch:methods}
+
+\noindent The discovery pipeline is a five-stage funnel of increasing fidelity and cost
+(Fig.~\ref{fig:summary}a). Each stage is described below.
+
+\section{Stage A --- economic-conditioned generation}
+A base \textsc{MatterGen} checkpoint was fine-tuned with nine conditioning properties: stability
+(energy above hull), metallicity (driving the band gap to zero), the primary CO-release
+descriptors (best-site CO affinity and the fraction of CO-selective sites), CO\textsubscript{2}
+activation (mean *COOH affinity), CO-vs-H selectivity, high mixing entropy, a metallic-packing
+proxy, and---decisively---the \emph{expensive-metal fraction}, defined as the fraction of metal
+atoms that are platinum-group (Ru, Rh, Pd, Os, Ir, Pt) or heavy rare-earth, which is driven to
+zero. Training labels were computed for every transition-metal carbide in the
+\texttt{alex\_mp\_20} dataset by literature-informed composition proxies. Fine-tuning ran for 600
+epochs; the validation loss is shown in Fig.~\ref{fig:loss}. Conditional generation was performed
+at two guidance strengths ($w=1.0$ and $w=2.5$), yielding 1024 candidate structures.
+
+\section{Stage B --- cheap composition screen}
+Every generated structure was re-evaluated with the composition proxies and filtered to retain
+those that are (i) genuine transition-metal carbides, (ii) within the CO-release window, (iii)
+high-entropy ($n_\mathrm{metal}\ge 3$, mixing entropy $\ge\!1.0\,k_\mathrm{B}$), and (iv)
+economically clean (zero expensive-metal fraction). This narrowed the pool to 104 survivors
+(90 distinct compositions).
+
+\section{Stage C --- MLIP surface free-energy screen}
+For the 24 highest-ranked distinct compositions, low-index surface terminations were enumerated
+(maximum Miller index 1); the most stable termination per facet was relaxed with the bottom half
+fixed, each adsorbate (*CO, *COOH, *H) was placed at every symmetry-distinct site, and the
+adslabs were relaxed with the UMA potential~\cite{uma2025}. Free energies followed the CHE
+expressions of Section~\ref{ch:theory}. Gas-phase and clean-slab references were computed
+consistently with the total-energy head of the same potential so that the slab contribution
+cancels; non-physical, non-converged sites ($|\Delta G|>\SI{10}{eV}$) were discarded. Each
+candidate's descriptors aggregate over \emph{all} computed facets and sites, and the candidates
+were ranked by proximity of their best site to the CO optimum and by CO-selective site density.
+
+\section{Stage D --- DFT validation and electronic structure}
+The six top-ranked candidates were validated with \textsc{Quantum ESPRESSO}~\cite{giannozzi2009}:
+variable-cell relaxation, followed by a self-consistent calculation on the relaxed geometry, and
+a density-of-states (DOS) calculation. Plane-wave cutoffs of \SI{60}{Ry} (wavefunctions) and
+\SI{480}{Ry} (charge density) were used with Marzari--Vanderbilt cold smearing
+(\SI{0.02}{Ry}) and Monkhorst--Pack $k$-meshes of density $\sim\!\SI{30}{\angstrom}/a$. SSSP
+pseudopotentials~\cite{prandini2018} were used for C, Y, Zr, W; for the rare earths
+(La, Ce, Pr) norm-conserving pseudopotentials with the $4f$ shell frozen in the core
+(trivalent) were used, which is physically appropriate for the localized $4f$ states of these
+metallic carbides. Element-projected DOS was obtained by projecting the converged Kohn--Sham
+states onto atomic orbitals (no additional self-consistency), summed per element to quantify each
+sublattice's contribution to the states at the Fermi level.
+
+\section{Stage A$'$ --- solid-solution supercells}
+To represent explicit chemical disorder, special quasirandom structures~\cite{zunger1990} of the
+high-entropy shortlist were built on rock-salt (MC) or hexagonal (M\textsubscript{2}C) frameworks
+by Monte-Carlo matching of the metal-sublattice pair-correlation functions; these supercells are
+the substrate for future explicit-disorder surface studies.
+
+\section{Software}
+Structure manipulation used \texttt{pymatgen}~\cite{pymatgen2013} and the Atomic Simulation
+Environment~\cite{ase2017}; the MLIP screen used the \texttt{fairchem}/UMA
+implementation~\cite{uma2025}.
+
+% =====================================================================
+\chapter{Computational Results}
+\label{ch:results}
+
+\section{Generation and the discovery funnel}
+Fine-tuning converged smoothly (Fig.~\ref{fig:loss}), and conditional generation produced 1024
+structures of which 1004 are transition-metal carbides. Their composition-descriptor
+distributions (Fig.~\ref{fig:genstats}) show that the economic conditioning was effective: the
+expensive-metal fraction is essentially zero across the pool, and the metal palette is dominated
+by inexpensive early transition metals and light rare earths (W, Y, Zr, Ce, La, Pr). The cheap
+screen retained 104 economical CO-releasing high-entropy carbides. The full funnel
+($1024 \rightarrow 1004 \rightarrow 90 \rightarrow 24 \rightarrow 6$) is summarized in
+Fig.~\ref{fig:summary}a.
+
+\section{MLIP surface screen}
+The UMA surface screen evaluated all low-index facets of the 24 candidates
+(Fig.~\ref{fig:surface}). The best-site $\dGCO$ of the leading candidates sits within a few tens
+of meV of the CO optimum, and the best site is found on a variety of facets rather than a single
+preferred plane---consistent with the high-entropy design intent of distributing favorable sites.
+The six top-ranked candidates, all CO-over-H selective at their best site, are listed in
+Table~\ref{tab:master}.
+
+\section{DFT validation: stability and metallicity}
+All six candidates relaxed to low residual pressure ($|P|<\SI{0.5}{kbar}$) and are
+\emph{metallic}, with a finite density of states at the Fermi level ranging from
+\SIrange{1.7}{12.4}{states/eV} per cell (Fig.~\ref{fig:dos}, Table~\ref{tab:master}). Metallic
+conductivity, a prerequisite for electrocatalysis, is therefore confirmed by first principles.
+
+\section{Conduction character from projected DOS}
+The element-projected DOS (Fig.~\ref{fig:pdos}) resolves \emph{which} sublattice carries the
+Fermi-level states. Two regimes emerge: carbon-rich candidates
+(Pr\textsubscript{3}Y\textsubscript{2}WC\textsubscript{7},
+Ce\textsubscript{2}Y\textsubscript{2}ZrWC\textsubscript{6}) are dominated by carbon-$2p$
+character at $\Ef$ ($\sim$60\%), describing a conductive carbide network, whereas the
+tungsten-rich La\textsubscript{3}Y\textsubscript{5}(WC\textsubscript{3})\textsubscript{3} and the
+rare-earth-free Y\textsubscript{2}ZrWC\textsubscript{8} are metal-$d$ dominated (Y/La/W).
+The per-element shares are plotted in Fig.~\ref{fig:summary}d. This hybridized C-$p$/metal-$d$
+conduction is exactly the electronic signature expected for ``platinum-like'' carbide
+catalysts~\cite{levy1973}.
+
+\section{Summary table}
+Table~\ref{tab:master} collects the surface activity descriptors and the DFT validation for the
+six final candidates; the corresponding composite figure is Fig.~\ref{fig:summary}.
+
+\begin{table}[t]
+\centering
+\caption{Master summary of the six final economical high-entropy carbide candidates: surface
+CO-release descriptor ($\dGCO$ of the best site, from the UMA screen), CO-over-H selectivity,
+and DFT-validated Fermi energy, density of states at $\Ef$, dominant conduction element, and
+residual pressure. All six are metallic.}
+\label{tab:master}
+\small
+\begin{tabular}{lccccccc}
+\toprule
+Candidate & $\dGCO$ (eV) & CO$>$H & $\Ef$ (eV) & DOS($\Ef$) & dominant & metallic & $P$ (kbar)\\
+\midrule
+Pr\textsubscript{3}Y\textsubscript{2}WC\textsubscript{7}                    & $-0.001$ & yes & 12.00 & 7.4 & C & yes & $+0.15$\\
+La\textsubscript{5}Y\textsubscript{4}W\textsubscript{2}C\textsubscript{9}   & $-0.001$ & yes & 11.52 & 9.8 & C & yes & $-0.10$\\
+Ce\textsubscript{2}Y\textsubscript{2}ZrWC\textsubscript{6}                  & $+0.007$ & yes & 12.72 & 6.7 & C & yes & $-0.29$\\
+La\textsubscript{3}Y\textsubscript{5}(WC\textsubscript{3})\textsubscript{3} & $-0.008$ & yes & 12.24 & 12.4 & Y & yes & $-0.32$\\
+Y\textsubscript{2}ZrWC\textsubscript{8}                                     & $-0.010$ & yes & 10.52 & 1.7 & W & yes & $+0.41$\\
+CeY\textsubscript{2}ZrWC\textsubscript{7}                                   & $-0.011$ & yes & 12.85 & 3.3 & C & yes & $-0.13$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ---- figures ----
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.92\textwidth]{fig_co2rr_pipeline_summary.pdf}
+\caption{End-to-end discovery synthesis. (a) The discovery funnel from 1024 generated structures
+to six DFT-validated metallic candidates. (b) UMA surface CO-release descriptor of the screened
+candidates (top-6 highlighted). (c) DFT density of states at the Fermi level for the top-6.
+(d) Element-projected conduction character (per-element share of DOS at $\Ef$).}
+\label{fig:summary}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.78\textwidth]{fig4_composite_economic.pdf}
+\caption{Fine-tuning of the economic-conditioned generative model: training/validation loss and
+per-component (position, lattice, atom-type) losses over 600 epochs.}
+\label{fig:loss}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_co2rr_generation_stats.pdf}
+\caption{Composition statistics of the generated carbide pool: (a) best-site CO affinity with the
+CO-release window; (b,c) descriptor correlations; (d) metal-count distribution;
+(e) expensive-metal fraction (economic constraint); (f) CO\textsubscript{2}RR selectivity.}
+\label{fig:genstats}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_co2rr_surface_screen.pdf}
+\caption{UMA surface screen: (a) candidates ranked by proximity of the best site to the CO
+optimum; (b) pooled $\dGCO$ distribution with the CO-release window; (c) CO-vs-H\textsubscript{2}
+selectivity ($\dGCOOH$ versus $\dGH$).}
+\label{fig:surface}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_co2rr_qe_pdos.pdf}
+\caption{Element-projected density of states (PDOS) of the six DFT-validated candidates versus
+$E-\Ef$. Finite states at $\Ef$ (dashed line) confirm metallicity; the elemental decomposition
+identifies the conduction character.}
+\label{fig:pdos}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.9\textwidth]{fig_co2rr_qe_dos.pdf}
+\caption{Total density of states of the six candidates near the Fermi level (DFT, PBE).}
+\label{fig:dos}
+\end{figure}
+
+% =====================================================================
+\chapter{Planned Experimental Validation}
+\label{ch:experiment}
+
+\noindent The computational pipeline yields concrete, falsifiable predictions: the six candidates
+should (i) be synthesizable as single-phase metallic carbides and (ii) electroreduce
+CO\textsubscript{2} to CO with selectivity exceeding HER. This chapter specifies the experimental
+program designed to test them. Results are reserved until the campaign is complete.
+
+\section{Materials synthesis}
+The shortlisted high-entropy carbides will be synthesized by high-temperature carburization of
+ball-milled metal/oxide precursors (or by arc-melting followed by carburization), targeting the
+SQS-predicted near-equimolar metal sublattice. Phase purity and the single-phase rock-salt/
+hexagonal structure will be verified by powder X-ray diffraction (XRD); homogeneity of the metal
+distribution by SEM/EDS and STEM-EDS mapping; and surface composition/oxidation state by X-ray
+photoelectron spectroscopy (XPS). \tbu{Synthesis and structural characterization}
+
+\section{Electrochemical CO\texorpdfstring{$_2$}{2}RR testing}
+Catalyst inks will be drop-cast onto gas-diffusion or glassy-carbon electrodes and tested in a
+gas-tight H-cell (and an MEA/flow cell for higher current density) in CO\textsubscript{2}-
+saturated aqueous bicarbonate electrolyte. Linear-sweep voltammetry and chronoamperometry at a
+series of applied potentials will quantify the partial current densities; the geometric and
+electrochemically-active-surface-area-normalized activities will be reported. \tbu{Polarization
+curves and Faradaic-efficiency vs.\ potential}
+
+\section{Product analysis}
+\begin{itemize}[nosep]
+\item \textbf{Gas products (CO, H\textsubscript{2}, residual CO\textsubscript{2}).} The cell
+headspace/outlet will be sampled on-line into a gas chromatograph (TCD + FID with methanizer) to
+quantify CO and H\textsubscript{2} and thus the CO Faradaic efficiency and the CO/H\textsubscript{2}
+selectivity; CO\textsubscript{2} conversion will be tracked from the inlet/outlet balance. On-line
+differential electrochemical mass spectrometry (DEMS) will provide potential-resolved CO/
+H\textsubscript{2} onset. \tbu{GC/DEMS gas-product quantification}
+\item \textbf{Liquid products.} The catholyte will be analyzed by quantitative \textsuperscript{1}H
+nuclear magnetic resonance (NMR) spectroscopy with water suppression and an internal standard
+(e.g.\ DMSO/DSS) to detect and quantify any formate or minor liquid products, confirming the
+expected dominance of the two-electron CO pathway. \tbu{\textsuperscript{1}H NMR liquid-product
+quantification}
+\item \textbf{Adsorbed intermediates.} In-situ attenuated-total-reflection surface-enhanced
+infrared absorption spectroscopy (ATR-SEIRAS / FT-IR) will be used to detect the *COOH and
+linearly/bridge-bound *CO bands as a function of potential, providing a direct mechanistic link
+to the computed $\dGCOOH$ and $\dGCO$ descriptors. \tbu{In-situ FT-IR of *COOH/*CO intermediates}
+\end{itemize}
+
+\section{Stability and post-mortem analysis}
+Extended electrolysis will assess durability; XRD, XPS and microscopy before/after testing will
+probe surface oxidation, leaching of the rare-earth components, and carbide-network integrity.
+\tbu{Durability and post-mortem characterization}
+
+\section{Validation logic}
+The experiments are designed to test the computational predictions point-by-point:
+metallic conductivity (four-point probe / electrochemical impedance) against the DFT DOS; CO
+selectivity (GC/NMR) against the computed $\dGCO$ and $\dGCOOH<\dGH$ selectivity criterion; and
+the mechanistic intermediates (FT-IR) against the descriptor ladder. A predicted-vs-measured
+comparison table is reserved for completion (Table~\ref{tab:expt}).
+
+\begin{table}[t]
+\centering
+\caption{Planned comparison of computational predictions with experimental observables.}
+\label{tab:expt}
+\small
+\begin{tabular}{lll}
+\toprule
+Predicted (this work) & Experimental probe & Status\\
+\midrule
+Single-phase HEC, equimolar metals & XRD, STEM-EDS & \tbu{result}\\
+Metallic (finite DOS at $\Ef$) & 4-probe / EIS & \tbu{result}\\
+CO-selective, $\dGCOOH<\dGH$ & GC, \textsuperscript{1}H NMR, FE & \tbu{result}\\
+*COOH$\rightarrow$*CO pathway & in-situ FT-IR & \tbu{result}\\
+CO\textsubscript{2} conversion & inlet/outlet GC balance & \tbu{result}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =====================================================================
+\chapter{Discussion}
+\label{ch:discussion}
+
+\section{Why this pipeline, and what it buys}
+The central methodological claim of this thesis is that \emph{economic constraints belong at the
+generative stage}. By fine-tuning the diffusion model on an expensive-metal-fraction label and
+guiding it to zero, the affordable subspace is sampled \emph{by construction}, rather than being
+discovered by filtering an unconstrained pool in which it is sparse. The resulting funnel spends
+DFT only on six structures while still surveying $\sim$10\textsuperscript{3} candidates, with each
+rung (composition proxy $\rightarrow$ MLIP $\rightarrow$ DFT) adding accuracy where the previous
+rung has already removed the bulk of the search space. This is a generalizable template: swapping
+the conditioning descriptors retargets the same machinery to a different reaction.
+
+\section{Interpreting the candidates}
+All six candidates combine cheap early transition metals (Y, Zr, W) with light rare earths (La,
+Ce, Pr) on the metal sublattice of a carbide. The DFT-resolved conduction character
+(Fig.~\ref{fig:pdos}) shows a continuum from carbon-$2p$-network metals to metal-$d$ metals,
+mirroring the ``platinum-like'' picture in which carbon reshapes the metal $d$
+states~\cite{levy1973}. The near-thermoneutral $\dGCO$ and the $\dGCOOH<\dGH$ selectivity place
+these materials in the same descriptor window that makes Au/Ag/Zn CO-selective~\cite{hori2008},
+but with earth-abundant constituents---which is precisely the design goal. The success of
+high-entropy alloys as experimental CO\textsubscript{2}/CO reduction
+catalysts~\cite{nellaiappan2020,batchelor2019} and of Mo\textsubscript{2}C for selective
+CO\textsubscript{2}-to-CO~\cite{porosoff2014} lends external plausibility to the carbide+HEC route.
+
+\section{Limitations and honest caveats}
+Several caveats must be stated. (i) The light rare earths (La, Ce, Pr, Y) are economically
+``inexpensive'' by the chosen descriptor, but rare-earth carbides are unusual CO\textsubscript{2}RR
+catalysts and may be oxophilic and air/moisture sensitive; experimental robustness is an open
+question that the planned stability tests directly address. (ii) The MLIP surface screen, although
+calibrated to cancel reference errors, evaluates rare-earth-carbide surfaces that lie outside the
+bulk of its training distribution; the strongly-bound *COOH energies in particular should be read
+qualitatively, and the activity ranking leans on the more robust $\dGCO$ descriptor. (iii) The
+composition proxies used in Stages A--B are literature-informed estimates intended for coarse
+filtering, not quantitative prediction. (iv) The DFT treats the rare-earth $4f$ electrons as
+frozen trivalent cores; while appropriate for these metallic carbides, $4f$-in-valence or
+DFT$+U$ treatments would be needed for any property sensitive to $f$-states. (v) The present DFT
+validates \emph{bulk} stability and metallicity; explicit-disorder \emph{surface} free energies
+in DFT (on the SQS supercells of Stage A$'$) are the natural next computational step, beyond the
+MLIP-level surface screen reported here. These limitations motivate, rather than undermine, the
+experimental campaign of Chapter~\ref{ch:experiment}, which is the arbiter of the predictions.
+
+\section{Outlook}
+Beyond confirming the six candidates, the pipeline supports an active-learning loop in which
+experimental and higher-level DFT data recalibrate the composition proxies and the MLIP,
+tightening successive generations. The same economic-conditioned generator could be retargeted to
+CO\textsubscript{2}-to-formate or to multi-carbon products by changing the conditioning
+descriptors.
+
+% =====================================================================
+\chapter{Conclusion}
+\label{ch:conclusion}
+
+This thesis built and applied an end-to-end generative pipeline that designs \emph{affordable}
+high-entropy carbide catalysts for the CO\textsubscript{2}-to-CO reaction by embedding an economic
+constraint directly into a property-conditioned diffusion model and validating the results through
+a funnel of a machine-learned potential and first-principles DFT. From 1024 generated structures,
+six platinum-group-metal-free high-entropy carbides emerged, each predicted to host a
+near-thermoneutral CO site with CO-over-hydrogen selectivity, and all confirmed by DFT to be
+metallic with a hybridized carbon-$p$/metal-$d$ conduction character. A complete experimental
+validation program---synthesis, electrochemical CO\textsubscript{2}RR, on-line gas analysis,
+\textsuperscript{1}H NMR, and in-situ FT-IR---has been designed to test these predictions, and its
+results will complete the work. The broader contribution is a reusable demonstration that
+affordability can be a \emph{generative} design objective for catalyst discovery.
+
+% =====================================================================
+\begin{thebibliography}{99}
+\setlength{\itemsep}{2pt}
+
+\bibitem{zeni2025} C.~Zeni, R.~Pinsler, D.~Z\"ugner, A.~Fowler, M.~Horton, X.~Fu, Z.~Wang,
+A.~Shysheya, J.~Crabb\'e, S.~Shysheya, \emph{et al.},
+``A generative model for inorganic materials design,''
+\emph{Nature} \textbf{639}, 624--632 (2025). doi:10.1038/s41586-025-08628-5.
+
+\bibitem{uma2025} B.~M.~Wood, M.~Dzamba, X.~Fu, M.~Gao, M.~Shuaibi, L.~Barroso-Luque,
+K.~Abdelmaqsoud, V.~Gharakhanyan, J.~R.~Kitchin, \emph{et al.},
+``UMA: A Family of Universal Models for Atoms,'' arXiv:2506.23971 (2025).
+
+\bibitem{chanussot2021} L.~Chanussot, A.~Das, S.~Goyal, T.~Lavril, M.~Shuaibi, M.~Riviere,
+K.~Tran, J.~Heras-Domingo, C.~Ho, W.~Hu, \emph{et al.},
+``Open Catalyst 2020 (OC20) Dataset and Community Challenges,''
+\emph{ACS Catal.} \textbf{11}, 6059--6072 (2021). doi:10.1021/acscatal.0c04525.
+
+\bibitem{giannozzi2009} P.~Giannozzi, S.~Baroni, N.~Bonini, M.~Calandra, R.~Car, C.~Cavazzoni,
+D.~Ceresoli, G.~L.~Chiarotti, M.~Cococcioni, I.~Dabo, \emph{et al.},
+``QUANTUM ESPRESSO: a modular and open-source software project for quantum simulations of
+materials,'' \emph{J. Phys.: Condens. Matter} \textbf{21}, 395502 (2009).
+doi:10.1088/0953-8984/21/39/395502.
+
+\bibitem{prandini2018} G.~Prandini, A.~Marrazzo, I.~E.~Castelli, N.~Mounet, N.~Marzari,
+``Precision and efficiency in solid-state pseudopotential calculations,''
+\emph{npj Comput. Mater.} \textbf{4}, 72 (2018). doi:10.1038/s41524-018-0127-2.
+
+\bibitem{pbe1996} J.~P.~Perdew, K.~Burke, M.~Ernzerhof,
+``Generalized Gradient Approximation Made Simple,''
+\emph{Phys. Rev. Lett.} \textbf{77}, 3865--3868 (1996). doi:10.1103/PhysRevLett.77.3865.
+
+\bibitem{norskov2004} J.~K.~N\o{}rskov, J.~Rossmeisl, A.~Logadottir, L.~Lindqvist,
+J.~R.~Kitchin, T.~Bligaard, H.~J\'onsson,
+``Origin of the Overpotential for Oxygen Reduction at a Fuel-Cell Cathode,''
+\emph{J. Phys. Chem. B} \textbf{108}, 17886--17892 (2004). doi:10.1021/jp047349j.
+
+\bibitem{nitopi2019} S.~Nitopi, E.~Bertheussen, S.~B.~Scott, X.~Liu, A.~K.~Engstfeld, S.~Horch,
+B.~Seger, I.~E.~L.~Stephens, K.~Chan, C.~Hahn, J.~K.~N\o{}rskov, T.~F.~Jaramillo, I.~Chorkendorff,
+``Progress and Perspectives of Electrochemical CO\textsubscript{2} Reduction on Copper in Aqueous
+Electrolyte,'' \emph{Chem. Rev.} \textbf{119}, 7610--7672 (2019).
+doi:10.1021/acs.chemrev.8b00705.
+
+\bibitem{hori2008} Y.~Hori, ``Electrochemical CO\textsubscript{2} Reduction on Metal Electrodes,''
+in \emph{Modern Aspects of Electrochemistry}, vol.~42, eds.\ C.~G.~Vayenas \emph{et al.},
+Springer, New York, pp.~89--189 (2008). doi:10.1007/978-0-387-49489-0\_3.
+
+\bibitem{batchelor2019} T.~A.~A.~Batchelor, J.~K.~Pedersen, S.~H.~Winther, I.~E.~Castelli,
+K.~W.~Jacobsen, J.~Rossmeisl,
+``High-Entropy Alloys as a Discovery Platform for Electrocatalysis,''
+\emph{Joule} \textbf{3}, 834--845 (2019). doi:10.1016/j.joule.2018.12.015.
+
+\bibitem{nellaiappan2020} S.~Nellaiappan, N.~K.~Katiyar, R.~Kumar, A.~Parui, K.~D.~Malviya,
+K.~G.~Pradeep, A.~K.~Singh, S.~Sharma, C.~S.~Tiwary, K.~Biswas,
+``High-Entropy Alloys as Catalysts for the CO\textsubscript{2} and CO Reduction Reactions:
+Experimental Realization,'' \emph{ACS Catal.} \textbf{10}, 3658--3663 (2020).
+doi:10.1021/acscatal.9b04302.
+
+\bibitem{levy1973} R.~B.~Levy, M.~Boudart,
+``Platinum-Like Behavior of Tungsten Carbide in Surface Catalysis,''
+\emph{Science} \textbf{181}, 547--549 (1973). doi:10.1126/science.181.4099.547.
+
+\bibitem{porosoff2014} M.~D.~Porosoff, X.~Yang, J.~A.~Boscoboinik, J.~G.~Chen,
+``Molybdenum Carbide as Alternative Catalysts to Precious Metals for Highly Selective Reduction of
+CO\textsubscript{2} to CO,'' \emph{Angew. Chem. Int. Ed.} \textbf{53}, 6705--6709 (2014).
+doi:10.1002/anie.201404109.
+
+\bibitem{sarker2018} P.~Sarker, T.~Harrington, C.~Toher, C.~Oses, M.~Samiee, J.-P.~Maria,
+D.~W.~Brenner, K.~S.~Vecchio, S.~Curtarolo,
+``High-entropy high-hardness metal carbides discovered by entropy descriptors,''
+\emph{Nat. Commun.} \textbf{9}, 4980 (2018). doi:10.1038/s41467-018-07160-7.
+
+\bibitem{zunger1990} A.~Zunger, S.-H.~Wei, L.~G.~Ferreira, J.~E.~Bernard,
+``Special quasirandom structures,'' \emph{Phys. Rev. Lett.} \textbf{65}, 353--356 (1990).
+doi:10.1103/PhysRevLett.65.353.
+
+\bibitem{pymatgen2013} S.~P.~Ong, W.~D.~Richards, A.~Jain, G.~Hautier, M.~Kocher, S.~Cholia,
+D.~Gunter, V.~L.~Chevrier, K.~A.~Persson, G.~Ceder,
+``Python Materials Genomics (pymatgen): A robust, open-source python library for materials
+analysis,'' \emph{Comput. Mater. Sci.} \textbf{68}, 314--319 (2013).
+doi:10.1016/j.commatsci.2012.10.028.
+
+\bibitem{ase2017} A.~Hjorth Larsen, J.~J.~Mortensen, J.~Blomqvist, I.~E.~Castelli, R.~Christensen,
+M.~Du\l{}ak, J.~Friis, M.~N.~Groves, B.~Hammer, C.~Hargus, \emph{et al.},
+``The atomic simulation environment---a Python library for working with atoms,''
+\emph{J. Phys.: Condens. Matter} \textbf{29}, 273002 (2017). doi:10.1088/1361-648X/aa680e.
+
+\end{thebibliography}
+
+\end{document}

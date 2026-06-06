@@ -1,0 +1,50 @@
+_target_: mattergen.common.data.datamodule.CrystDataModule
+_recursive_: true
+properties: []
+  # Carbide HER conditioning properties (overridden at runtime by
+  # data_module.properties in scripts/10_finetune_carbide.sh):
+  #   best_site_h_affinity, frac_thermoneutral_sites, mean_h_affinity,
+  #   d_band_proxy, valence_electron_conc, carbon_fraction,
+  #   metal_mixing_entropy, n_metal_species, metal_cn_mean, mc_coordination,
+  #   metal_packing_density, metal_percolation_dim
+  # Plus existing base labels: dft_band_gap, energy_above_hull, space_group, ...
+
+dataset_transforms:
+  - _target_: mattergen.common.data.dataset_transform.filter_sparse_properties
+    _partial_: true
+
+transforms:
+  - _target_: mattergen.common.data.transform.symmetrize_lattice
+    _partial_: true
+  - _target_: mattergen.common.data.transform.set_chemical_system_string
+    _partial_: true
+
+average_density: 0.05771451654022283
+
+# Overlay cache written by carbidemattergen.cache_overlay.build_overlay()
+# (scripts/02_inject_labels.sh). Override OVERLAY_CACHE at runtime to relocate.
+root_dir: ${oc.env:OVERLAY_CACHE,/home/jonglee69/mattergen/CarbideMatterGen/cache/overlay_carbide}
+
+train_dataset:
+  _target_: mattergen.common.data.dataset.CrystalDataset.from_cache_path
+  cache_path: ${data_module.root_dir}/train
+  properties: ${data_module.properties}
+  transforms: ${data_module.transforms}
+  dataset_transforms: ${data_module.dataset_transforms}
+
+val_dataset:
+  _target_: mattergen.common.data.dataset.CrystalDataset.from_cache_path
+  cache_path: ${data_module.root_dir}/val
+  properties: ${data_module.properties}
+  transforms: ${data_module.transforms}
+  dataset_transforms: ${data_module.dataset_transforms}
+
+num_workers:
+  train: 4
+  val: 2
+
+batch_size:
+  train: ${eval:'(512 // ${trainer.accumulate_grad_batches}) // (${trainer.devices} * ${trainer.num_nodes})'}
+  val: ${eval:'(512 // ${trainer.accumulate_grad_batches}) // (${trainer.devices} * ${trainer.num_nodes})'}
+
+max_epochs: 2200

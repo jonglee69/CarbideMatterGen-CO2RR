@@ -1,0 +1,13 @@
+rank,source_formula,sqs_formula,framework,carbon_fraction,n_metal_sites,n_palette,phi_random,phi_sqs,phi_reduction,shell_radii,best_site,frac_tn,S_mix,w,cif
+1,LaCeY3HfW2C7,La7Ce7Y6Hf6(W3C16)2,rocksalt_MC,0.467,32,5,0.00179,6e-05,29.33,3.04;4.30,-0.2,0.0,1.494,nan,01_La7Ce7Y6Hf6(W3C16)2.cif
+2,CeYZrWC6,CeYZrWC4,rocksalt_MC,0.6,32,4,0.00167,2e-05,96.0,3.04;4.30,-0.2,0.0,1.386,nan,02_CeYZrWC4.cif
+3,PrZrTiWC5,PrZrTiWC4,rocksalt_MC,0.556,32,4,0.00167,2e-05,96.0,3.04;4.30,-0.2,0.0,1.386,nan,03_PrZrTiWC4.cif
+4,PrYZrCdC,Pr14Y14Zr13Cd13C27,hcp_M2C,0.2,54,4,0.00074,0.00037,1.98,2.92;4.19,0.2,0.0,1.386,nan,04_Pr14Y14Zr13Cd13C27.cif
+5,CeNdYWC3,CeNdYWC4,rocksalt_MC,0.429,32,4,0.00167,2e-05,96.0,3.04;4.30,-0.2,0.0,1.386,nan,05_CeNdYWC4.cif
+6,LaNdYWC4,LaNdYWC4,rocksalt_MC,0.5,32,4,0.00167,2e-05,96.0,3.04;4.30,-0.2,0.0,1.386,nan,06_LaNdYWC4.cif
+7,LaYTiWC6,LaYTiWC4,rocksalt_MC,0.6,32,4,0.00167,2e-05,96.0,3.04;4.30,-0.2,0.0,1.386,nan,07_LaYTiWC4.cif
+8,HfZrScWC4,HfZrScWC4,rocksalt_MC,0.5,32,4,0.00167,2e-05,96.0,3.04;4.30,-0.2,0.0,1.386,nan,08_HfZrScWC4.cif
+9,CeYZrWC5,CeYZrWC4,rocksalt_MC,0.556,32,4,0.00167,2e-05,96.0,3.04;4.30,-0.2,0.0,1.386,nan,09_CeYZrWC4.cif
+10,La3Ce2Zr2W2C11,LaCeZrWC4,rocksalt_MC,0.55,32,4,0.00167,2e-05,96.0,3.04;4.30,-0.2,0.0,1.369,nan,10_LaCeZrWC4.cif
+11,Pr2Nd3Y3(WC5)2,PrNdYWC4,rocksalt_MC,0.5,32,4,0.00167,2e-05,96.0,3.04;4.30,-0.2,0.0,1.366,nan,11_PrNdYWC4.cif
+12,Nd2Y2ZrW2C7,NdYZrWC4,rocksalt_MC,0.5,32,4,0.00167,2e-05,96.0,3.04;4.30,-0.2,0.0,1.352,nan,12_NdYZrWC4.cif
