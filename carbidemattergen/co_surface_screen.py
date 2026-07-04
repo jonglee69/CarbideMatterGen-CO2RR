@@ -61,7 +61,7 @@ CO_OPTIMUM = 0.0
 CO_WINDOW = 0.20  # |ΔG_CO − CO_OPTIMUM| below this counts as a CO-releasing site.
 
 # Gas-phase free-energy corrections (eV) added to the electronic ΔE.
-DG_CORR = {"CO": 0.10, "COOH": 0.41, "H": 0.24}
+DG_CORR = {"CO": 0.10, "COOH": 0.41, "H": 0.24, "OH": 0.30, "O": 0.05}
 
 # Physical sanity bound on an adsorption ΔG (eV). Freshly-cut, low-symmetry
 # carbide slabs (especially REE-bearing) sometimes fail to relax within the step
@@ -119,6 +119,7 @@ _GAS_GEOM = {
     "H2":  ("H2",  [[0, 0, 0], [0, 0, 0.74]]),
     "CO":  ("CO",  [[0, 0, 0], [0, 0, 1.128]]),
     "CO2": ("CO2", [[0, 0, 0], [0, 0, 1.16], [0, 0, -1.16]]),
+    "H2O": ("H2O", [[0, 0, 0], [0.7575, 0.5865, 0], [-0.7575, 0.5865, 0]]),
 }
 
 
@@ -149,6 +150,10 @@ def _reference_energy(calc, adsorbate: str) -> float:
         return _gas_energy(calc, "CO2") + 0.5 * _gas_energy(calc, "H2")
     if adsorbate == "H":
         return 0.5 * _gas_energy(calc, "H2")
+    if adsorbate == "OH":  # *OH vs H2O(l≈g) - 1/2 H2 (CHE)
+        return _gas_energy(calc, "H2O") - 0.5 * _gas_energy(calc, "H2")
+    if adsorbate == "O":   # *O vs H2O - H2
+        return _gas_energy(calc, "H2O") - _gas_energy(calc, "H2")
     raise ValueError(adsorbate)
 
 
@@ -161,6 +166,10 @@ def _adsorbate_molecule(name: str):
     from pymatgen.core import Molecule
     if name == "H":
         return Molecule(["H"], [[0.0, 0.0, 0.0]])
+    if name == "O":
+        return Molecule(["O"], [[0.0, 0.0, 0.0]])
+    if name == "OH":  # O binds to the surface, H points up
+        return Molecule(["O", "H"], [[0.0, 0.0, 0.0], [0.0, 0.0, 0.97]])
     if name == "CO":
         return Molecule(["C", "O"], [[0.0, 0.0, 0.0], [0.0, 0.0, 1.16]])
     if name == "COOH":
@@ -333,7 +342,8 @@ def main() -> None:
     ap.add_argument("--site-cap", type=int, default=None,
                     help="cap sites per facet (default: all distinct sites)")
     ap.add_argument("--adsorbates", default="CO,COOH,H",
-                    help="comma list; subset of CO,COOH,H (default all)")
+                    help="comma list from CO,COOH,H,OH,O (default CO,COOH,H). "
+                         "OH/O enable the surface-Pourbaix poisoning screen.")
     ap.add_argument("--shard", default=None,
                     help="process shard i of N, e.g. '0/4' (candidates split by "
                          "index % N == i for parallel workers)")
