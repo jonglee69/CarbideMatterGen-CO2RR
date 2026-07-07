@@ -24,7 +24,7 @@ import subprocess
 from pathlib import Path
 
 RY = 13.605693122994  # eV per Ry
-DG_CORR = {"CO": 0.10, "COOH": 0.41, "H": 0.24}
+DG_CORR = {"CO": 0.10, "COOH": 0.41, "H": 0.24, "OH": 0.30, "O": 0.05}
 DEF_QE_BIN = "/home/jonglee69/software/qe_build/q-e-qe-7.3.1/bin"
 
 
@@ -92,10 +92,12 @@ def main():
     # 2) gas references
     def gas(name):
         return energies.get(name)
-    e_CO, e_CO2, e_H2 = gas("CO"), gas("CO2"), gas("H2")
+    e_CO, e_CO2, e_H2, e_H2O = gas("CO"), gas("CO2"), gas("H2"), gas("H2O")
     ref = {"CO": (lambda: e_CO),
            "COOH": (lambda: (e_CO2 + 0.5 * e_H2) if (e_CO2 and e_H2) else None),
-           "H": (lambda: 0.5 * e_H2 if e_H2 else None)}
+           "H": (lambda: 0.5 * e_H2 if e_H2 else None),
+           "OH": (lambda: (e_H2O - 0.5 * e_H2) if (e_H2O and e_H2) else None),
+           "O": (lambda: (e_H2O - e_H2) if (e_H2O and e_H2) else None)}
 
     # 3) assemble ΔG per (formula, facet, adsorbate)
     results = {}

@@ -44,6 +44,7 @@ GAS = {
     "H2":  ("H2",  [[0, 0, 0], [0, 0, 0.74]]),
     "CO":  ("CO",  [[0, 0, 0], [0, 0, 1.128]]),
     "CO2": ("CO2", [[0, 0, 0], [0, 0, 1.16], [0, 0, -1.16]]),
+    "H2O": ("H2O", [[0, 0, 0], [0.7575, 0.5865, 0], [-0.7575, 0.5865, 0]]),
 }
 
 
@@ -163,9 +164,16 @@ def main():
             man.append(info)
             print(f"  {prefix:38s} nat={info['natoms']:3d} {args.calc} k={info['kpts']}")
 
-    # gas references: already computed at 60/480 (relax). Only rewrite on request.
+    # gas references needed for the adsorbates present (CO->CO; COOH->CO2,H2;
+    # H->H2; OH/O->H2O,H2). already computed at 60/480 (relax); rewrite on request.
+    ads_present = {r["adsorbate"] for r in rows}
+    need = {"H2"}
+    if "CO" in ads_present:   need |= {"CO"}
+    if "COOH" in ads_present: need |= {"CO2"}
+    if ads_present & {"OH", "O"}: need |= {"H2O"}
+    gases = [g for g in ("CO", "CO2", "H2", "H2O") if g in need]
     if args.gas:
-        for g in ("CO", "CO2", "H2"):
+        for g in gases:
             cdir = args.out / "_gas" / g
             info = write_gas_relax(g, cdir)
             info.update({"formula": "_gas", "facet": "", "adsorbate": g,
@@ -174,7 +182,7 @@ def main():
             print(f"  gas {g:4s} -> {cdir}")
     else:
         # carry forward the existing gas rows so 56 can find them
-        for g in ("CO", "CO2", "H2"):
+        for g in gases:
             man.append({"formula": "_gas", "facet": "", "adsorbate": g,
                         "kind": "gas", "infile": "relax.in", "calc": "relax",
                         "prefix": g, "dir": str(args.out / "_gas" / g)})

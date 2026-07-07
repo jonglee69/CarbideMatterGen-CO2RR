@@ -28,12 +28,23 @@ import matplotlib.pyplot as plt
 ROOT = Path(__file__).resolve().parent.parent
 OHO = ROOT / "outputs/qe_surface/oh_o_screen.jsonl"
 DFT = ROOT / "outputs/qe_surface/dft/surface_dft_dG.csv"
+DFT_OHO = ROOT / "outputs/qe_surface/dft_oh/surface_dft_dG.csv"
 FIG = ROOT / "figures"; FIG.mkdir(exist_ok=True)
 US = [0.0, -0.3, -0.6, -1.0]  # V vs RHE (CO2RR window)
+# level of theory used, set by load_oho(): "DFT" if the QE O/OH run exists, else "UMA"
+LEVEL = "UMA"
 
 
 def load_oho():
-    """min (strongest) dG_OH, dG_O per candidate (UMA, U=0)."""
+    """Strongest dG_OH, dG_O per candidate. Prefer the QE DFT confirmation run
+    (dft_oh/surface_dft_dG.csv); fall back to the UMA screen (oh_o_screen.jsonl)."""
+    global LEVEL
+    if DFT_OHO.exists():
+        LEVEL = "DFT"
+        out = {}
+        for r in csv.DictReader(open(DFT_OHO)):
+            out.setdefault(r["formula"], {})[r["adsorbate"]] = float(r["dG_dft_eV"])
+        return {f: {"OH": d.get("OH"), "O": d.get("O")} for f, d in out.items()}
     out = {}
     for line in open(OHO):
         d = json.loads(line)
@@ -47,10 +58,12 @@ def load_oho():
 
 
 def load_co_h():
-    """UMA dG_CO (closest to 0) and min dG_H per candidate, from the DFT csv's UMA col."""
+    """dG_CO (closest to 0) and min dG_H per candidate. Use the DFT column when the
+    O/OH values are DFT (consistent footing), else the UMA column."""
+    col = "dG_dft_eV" if LEVEL == "DFT" else "dG_uma_eV"
     co, h = {}, {}
     for r in csv.DictReader(open(DFT)):
-        f = r["formula"]; g = float(r["dG_uma_eV"]); a = r["adsorbate"]
+        f = r["formula"]; g = float(r[col]); a = r["adsorbate"]
         if a == "CO":
             co.setdefault(f, []).append(g)
         elif a == "H":
@@ -85,12 +98,12 @@ def main():
                          **{f"dG_{s}": round(vals[s], 3) for s in vals},
                          "dominant": winner, "poisoned": poisoned})
     # table
-    out = ROOT / "outputs/qe_surface/surface_pourbaix.csv"
+    out = ROOT / f"outputs/qe_surface/surface_pourbaix_{LEVEL.lower()}.csv"
     cols = ["candidate", "U_RHE", "dG_OH", "dG_O", "dG_CO", "dG_H", "dominant", "poisoned"]
     with open(out, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=cols, extrasaction="ignore")
         w.writeheader(); w.writerows(rows)
-    print(f"wrote {out}\n")
+    print(f"[{LEVEL}] wrote {out}\n")
     print(f"{'candidate':14s} " + "  ".join(f"U={u:+.1f}" for u in US))
     for name in sorted(oho):
         cells = []
@@ -114,10 +127,11 @@ def main():
     ax.text(-0.85, ax.get_ylim()[1]*0.9 if False else -8.0, "CO$_2$RR window", fontsize=8, color="k")
     ax.set_xlabel("potential $U$ (V vs RHE)")
     ax.set_ylabel(r"strongest $\Delta G_{*\rm OH}(U)$ (eV)")
-    ax.set_title("Surface Pourbaix: $*$OH binding vs potential (UMA, strongest site)")
+    ax.set_title(f"Surface Pourbaix: $*$OH binding vs potential ({LEVEL}, strongest site)")
     ax.legend(fontsize=7, loc="upper right")
     fig.tight_layout()
-    p = FIG / "fig_co2rr_surface_pourbaix.pdf"; fig.savefig(p); plt.close(fig)
+    suffix = "" if LEVEL == "UMA" else f"_{LEVEL.lower()}"
+    p = FIG / f"fig_co2rr_surface_pourbaix{suffix}.pdf"; fig.savefig(p); plt.close(fig)
     print(f"\nwrote {p}")
 
 

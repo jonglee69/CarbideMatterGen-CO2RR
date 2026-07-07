@@ -461,8 +461,8 @@ CHE 한계 전위, $d$-밴드 중심, 볼록 껍질 안정성 분석은 완료�
 \begin{itemize}[nosep]
 \item \tbc{$*$COOH 심우물 자리의 투영 결정-궤도(COHP/COOP) 결합 분석 --- 해리성 과결합 여부의
 직접 확인(LOBSTER)}
-\item \tbc{표면 $*$O/$*$OH 피독 Pourbaix의 DFT 재계산 및 피복률 정량 --- UMA 스크린
-(\ref{sec:ree-stability}절, 다섯 후보 $*$O/$*$OH 피독 예측)의 DFT 확정}
+\item \tbc{표면 피독의 피복률(부분 피복) 및 국소 pH 정량 --- $*$O/$*$OH DFT 확정
+(\ref{sec:ree-stability}절, DFT vs UMA $r{=}0.986$)을 넘어 유효 피복 분율까지}
 \item \tbc{희토류 벌크 용출 Pourbaix 수치 도표 --- 벌크 껍질 준안정(\ref{sec:hull}절)과
 표준 전위를 정량 도표로 통합(의존성 정합 MP 환경 필요)}
 \end{itemize}
@@ -502,11 +502,23 @@ $*$H 우세로 전환된다. 즉 \emph{DFT/MLIP 열역학은 이 산소친화적
 정량 확정은 DFT 재계산과 피복률(부분 피독) 분석을 요한다. 이는 \ref{ch:experiment}장의 XPS 표면
 산화 상태·용출 후 분석 필요성을 직접 동기화한다.
 
+\emph{DFT 확정.} 각 후보의 최강-$*$OH 면을 골라 청정슬랩·$*$OH·$*$O를 QE 단일점(DFT$/\!/$UMA,
+$\Gamma$, 60/480~Ry)으로 재계산하였다(24 슬랩; La-rich 조성은 GPU SCF 비수렴으로 CPU 폴백).
+\textbf{DFT와 UMA는 $r=0.986$(MAE 0.21~eV)로 강하게 일치}하여 MLIP 피독 예측을 정량적으로
+확증한다. DFT 표면 Pourbaix(그림~\ref{fig:pourbaix})는 더 미세한 그림을 준다: \textbf{작동
+전위 0$\sim\!-0.6$~V(vs RHE)에서 여섯 후보 전부 $*$O/$*$OH로 피독}되나, 강한 음극 바이어스
+($-1.0$~V)에서는 \textbf{여섯 중 다섯이 $*$H 우세로 회복}(음극 방어)되고 \emph{La$_5$Y$_4$W$_2$C$_9$만}
+$\Delta G_{*\mathrm{OH}}=-6.67$~eV의 깊은 우물로 전위 전역에서 피독을 유지한다. 요컨대 DFT는
+(i) 산소친화적 희토류-카바이드 표면이 완만한 전위에서 산화·피독됨을 확인하고, (ii) 충분한 음극
+바이어스가 대부분(5/6)에 보호를 제공하되 La$_5$Y$_4$W$_2$C$_9$는 비가역적으로 피독됨을 예측한다.
+후보 선별 시 \emph{활성}($\Delta G_{\rm CO}\!\approx\!0$)과 \emph{내산화성}(약한 $*$OH 결합)의 공동
+조건화가 필요함을 시사한다.
+
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.7\textwidth]{fig_co2rr_surface_pourbaix.pdf}
-\caption{표면 Pourbaix: 최강 결합 자리의 $\Delta G_{*\mathrm{OH}}(U)$ 대 전위(UMA). 작동창(음영)
-전역에서 $\Delta G_{*\mathrm{OH}}<0$이면 $*$OH 피복(산화/피독)이 예측된다.}
+\includegraphics[width=0.7\textwidth]{fig_co2rr_surface_pourbaix_dft.pdf}
+\caption{DFT 표면 Pourbaix: 최강 결합 자리의 $\Delta G_{*\mathrm{OH}}(U)$ 대 전위. 작동창(음영)
+전역에서 $\Delta G_{*\mathrm{OH}}<0$이면 $*$OH 피복(산화/피독)이 예측된다. DFT vs UMA $r=0.986$.}
 \label{fig:pourbaix}
 \end{figure}
 
