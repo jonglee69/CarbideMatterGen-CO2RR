@@ -102,7 +102,7 @@ def analyse_che():
 
 def plot_che(best):
     """CHE free-energy diagram, best facet per candidate, at U=0."""
-    fig, ax = plt.subplots(figsize=(9.2, 5.0))
+    fig, ax = plt.subplots(figsize=(7.6, 5.0))
     # path states: CO2+* (0) -> *COOH (dG1) -> *CO (dG_CO) -> CO(g)+* (dG_CO - dG_CO = ~0)
     xs = [0, 1, 2, 3]
     labels = [r"CO$_2$+*", r"*COOH", r"*CO", r"CO(g)+*"]
@@ -117,13 +117,13 @@ def plot_che(best):
         for i in range(3):
             ax.plot([xs[i]+0.30, xs[i+1]-0.30], [G[i], G[i+1]], color=c, lw=1.0, ls=":")
         ax.plot([], [], color=c, lw=2.4,
-                label=f"{formula}  (f{r['facet']}, $U_L$={r['U_L']:+.2f} V, PDS={r['pds']})")
+                label=f"{formula} (f{r['facet']}, $U_L$={r['U_L']:+.2f} V)")
     ax.set_xticks(xs); ax.set_xticklabels(labels)
     ax.set_ylabel(r"$\Delta G$ at $U=0$ vs RHE (eV)")
     ax.set_title("CO$_2$RR-to-CO free-energy diagram (DFT, best facet per candidate)")
     ax.axhline(0, color="grey", lw=0.6, ls="--")
-    # legend outside the axes at the upper right so it never covers the curves
-    ax.legend(fontsize=7.4, loc="upper left", bbox_to_anchor=(1.01, 1.0), framealpha=0.9)
+    # legend inside, lower-right (empty region: curves converge near G=0 at right)
+    ax.legend(fontsize=7.4, loc="lower right", framealpha=0.9)
     fig.tight_layout()
     p = FIGDIR / "fig_co2rr_che_diagram.pdf"; fig.savefig(p); plt.close(fig)
     print(f"wrote {p}")
