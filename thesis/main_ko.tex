@@ -461,8 +461,8 @@ CHE 한계 전위, $d$-밴드 중심, 볼록 껍질 안정성 분석은 완료�
 \begin{itemize}[nosep]
 \item \tbc{$*$COOH 심우물 자리의 투영 결정-궤도(COHP/COOP) 결합 분석 --- 해리성 과결합 여부의
 직접 확인(LOBSTER)}
-\item \tbc{표면 피독의 피복률(부분 피복) 및 국소 pH 정량 --- $*$O/$*$OH DFT 확정
-(\ref{sec:ree-stability}절, DFT vs UMA $r{=}0.986$)을 넘어 유효 피복 분율까지}
+\item \tbc{여섯 후보의 \emph{활성 면} 기준 같은-면 완전 표면 Pourbaix($*$COOH 포함) 및 피복률
+--- 세 후보의 정지상태 $*$COOH 결과(\ref{sec:ree-stability}절)를 활성 면 $*$O/$*$OH DFT로 완결}
 \item \tbc{희토류 벌크 용출 Pourbaix 수치 도표 --- 벌크 껍질 준안정(\ref{sec:hull}절)과
 표준 전위를 정량 도표로 통합(의존성 정합 MP 환경 필요)}
 \end{itemize}
@@ -488,37 +488,39 @@ CO$_2$RR은 음극(환원) 전위에서 작동하므로 열역학적으로 산�
 피독 위험은 낮고, 위험은 개회로/기동 및 국소 알칼리화 시 최대가 된다 --- Pourbaix 도표가 이
 전위·pH 의존성을 정량화한다.
 
-\emph{결과(수행 완료, UMA 수준).} Stage~B 파이프라인에 $*$O, $*$OH를 흡착자로 추가해 여섯 후보의
+\emph{$*$O/$*$OH 스크린(UMA).} Stage~B 파이프라인에 $*$O, $*$OH를 흡착자로 추가해 여섯 후보의
 전 면·전 자리(후보당 120$\sim$306 자리)를 스크린하였다. 최강 결합 자리의 자유에너지는
-$\Delta G_{*\mathrm{OH}}(0)=-2.8\!\sim\!-7.0$~eV, $\Delta G_{*\mathrm{O}}(0)=-3.6\!\sim\!-8.8$~eV로,
-$*$CO($\Delta G_{\rm CO}\!\approx\!0$)보다 훨씬 강하다(희토류의 큰 산소친화도와 일관). CHE 전위
-의존성($\Delta G_{*\mathrm{OH}}(U)=\Delta G_{*\mathrm{OH}}(0)-eU$,
-$\Delta G_{*\mathrm{O}}(U)=\Delta G_{*\mathrm{O}}(0)-2eU$)을 적용해 각 전위에서 지배 종을 구하면
-(그림~\ref{fig:pourbaix}, 표는 부록), \textbf{여섯 중 다섯이 CO$_2$RR 작동창(0$\sim\!-1.0$~V vs RHE)
-전역에서 $*$O/$*$OH로 피복(피독)}된다. 유일하게 CeY$_2$ZrWC$_7$만이 강한 음극 바이어스($-1.0$~V)에서
-$*$H 우세로 전환된다. 즉 \emph{DFT/MLIP 열역학은 이 산소친화적 희토류-카바이드 표면이 수용액에서
-산화·피독되는 경향을 예측}하며, 이는 실험적 우려를 뒷받침한다. \emph{단서}: 최강 자리 값은 $*$COOH
-심우물과 마찬가지로 해리성 과결합(표면 산화물 형성)을 일부 반영하므로 최악 경계로 해석해야 하고,
-정량 확정은 DFT 재계산과 피복률(부분 피독) 분석을 요한다. 이는 \ref{ch:experiment}장의 XPS 표면
-산화 상태·용출 후 분석 필요성을 직접 동기화한다.
+$\Delta G_{*\mathrm{OH}}(0)=-2.4\!\sim\!-7.0$~eV, $\Delta G_{*\mathrm{O}}(0)=-1.2\!\sim\!-8.8$~eV로
+$*$CO($\Delta G_{\rm CO}\!\approx\!0$)보다 훨씬 강하여, 이 희토류-카바이드 표면의 큰 산소친화도를
+보인다. 이는 산화 피복의 열역학적 \emph{경향}을 시사하나, 실제 작동 중 정지상태는 반응 중간체
+$*$COOH를 포함한 같은-면 비교로 판정해야 하며(아래 DFT 정정 참조), 이때 산화가 아니라 $*$COOH가
+우세함이 드러난다.
 
-\emph{DFT 확정.} 각 후보의 최강-$*$OH 면을 골라 청정슬랩·$*$OH·$*$O를 QE 단일점(DFT$/\!/$UMA,
-$\Gamma$, 60/480~Ry)으로 재계산하였다(24 슬랩; La-rich 조성은 GPU SCF 비수렴으로 CPU 폴백).
-\textbf{DFT와 UMA는 $r=0.986$(MAE 0.21~eV)로 강하게 일치}하여 MLIP 피독 예측을 정량적으로
-확증한다. DFT 표면 Pourbaix(그림~\ref{fig:pourbaix})는 더 미세한 그림을 준다: \textbf{작동
-전위 0$\sim\!-0.6$~V(vs RHE)에서 여섯 후보 전부 $*$O/$*$OH로 피독}되나, 강한 음극 바이어스
-($-1.0$~V)에서는 \textbf{여섯 중 다섯이 $*$H 우세로 회복}(음극 방어)되고 \emph{La$_5$Y$_4$W$_2$C$_9$만}
-$\Delta G_{*\mathrm{OH}}=-6.67$~eV의 깊은 우물로 전위 전역에서 피독을 유지한다. 요컨대 DFT는
-(i) 산소친화적 희토류-카바이드 표면이 완만한 전위에서 산화·피독됨을 확인하고, (ii) 충분한 음극
-바이어스가 대부분(5/6)에 보호를 제공하되 La$_5$Y$_4$W$_2$C$_9$는 비가역적으로 피독됨을 예측한다.
-후보 선별 시 \emph{활성}($\Delta G_{\rm CO}\!\approx\!0$)과 \emph{내산화성}(약한 $*$OH 결합)의 공동
-조건화가 필요함을 시사한다.
+\emph{DFT 확정과 정지상태(resting state)---정정.} 각 후보의 최강-$*$OH 면에서 청정슬랩·$*$OH·$*$O를
+QE 단일점(DFT$/\!/$UMA, $\Gamma$, 60/480~Ry, 24 슬랩; La-rich 조성은 GPU SCF 비수렴으로 CPU 폴백)으로
+재계산하였다. \textbf{DFT와 UMA는 $r=0.986$(MAE 0.21~eV)로 강하게 일치}하여 $*$O/$*$OH 결합
+자유에너지를 확증한다($\Delta G_{*\mathrm{OH}}(0)=-2.4\!\sim\!-6.7$~eV, $\Delta G_{*\mathrm{O}}(0)=
+-0.6\!\sim\!-4.3$~eV; 표면의 큰 산소친화도 확인). 그러나 \emph{작동 중 표면 정지상태}를 판정하려면
+경쟁하는 모든 흡착종을 \emph{같은 면}에서, 특히 CO$_2$RR 반응 중간체 $*$COOH를 포함해
+($\Delta G_{*\mathrm{COOH}}(U)=\Delta G_{*\mathrm{COOH}}(0)+eU$) 비교해야 한다. $*$OH 면에 주 DFT의
+$*$CO/$*$COOH/$*$H가 존재하는 세 후보에 대해 같은-면 완전 Pourbaix를 산출하면(그림~\ref{fig:pourbaix})
+\textbf{Ce$_2$Y$_2$ZrWC$_6$·Pr$_3$Y$_2$WC$_6$는 전 작동창에서, CeY$_2$ZrWC$_7$는 $-0.3$~V 이하에서
+$*$COOH(반응 중간체)가 정지상태}이며 $*$O/$*$OH가 지배하지 않는다. 즉 \emph{음극 작동 전위에서의
+정지상태는 산화 피복이 아니라 $*$COOH 피복(작동 상태)}이다. 강한 $*$OH/$*$O 결합은 산화 \emph{경향}
+(개회로·기동 시 위험)을 뜻하지만 작동 전위에서 $*$COOH가 이를 능가한다. 실질 한계는 여러 후보의
+\emph{$*$COOH 과결합}($\Delta G_{*\mathrm{COOH}}\!\approx\!-3\!\sim\!-4$~eV $\Rightarrow$ $*$COOH$\to*$CO
+강한 흡열, 높은 $U_L$; 표~\ref{tab:che}과 일관)이며 산화 피독과는 다른 문제다. \emph{한계}: 위 분석은
+$*$OH 면이 주 DFT 면과 일치하는 세 후보에 국한된다(La$_3$Y$_5$(WC$_3$)$_3$·La$_5$Y$_4$W$_2$C$_9$·
+Y$_2$ZrWC$_8$는 활성 면에서의 $*$O/$*$OH DFT가 추가로 필요). 여섯 후보의 활성-면 정지상태 및
+피복률 정량은 후속 과제다. 교차 검증은 \ref{ch:experiment}장의 XPS 산화 상태·용출 후분석과
+in-situ FT-IR($*$COOH/$*$CO 밴드)로 수행한다.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.7\textwidth]{fig_co2rr_surface_pourbaix_dft.pdf}
-\caption{DFT 표면 Pourbaix: 최강 결합 자리의 $\Delta G_{*\mathrm{OH}}(U)$ 대 전위. 작동창(음영)
-전역에서 $\Delta G_{*\mathrm{OH}}<0$이면 $*$OH 피복(산화/피독)이 예측된다. DFT vs UMA $r=0.986$.}
+\includegraphics[width=\textwidth]{fig_co2rr_surface_pourbaix_dft.pdf}
+\caption{같은-면 완전 표면 Pourbaix(DFT, $*$COOH 포함): $*$OH 면 데이터가 주 DFT와 일치하는 세
+후보. 각 흡착종 $\Delta G$의 전위 의존성. 작동창(음영)에서 최저 $\Delta G$ 종이 정지상태이며, 세
+후보 모두 반응 중간체 $*$COOH(녹색)가 우세하여 산화 피복($*$OH/$*$O, 적색)이 지배하지 않는다.}
 \label{fig:pourbaix}
 \end{figure}
 

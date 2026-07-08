@@ -1,24 +1,30 @@
 #!/usr/bin/env python
-"""Surface Pourbaix / active-site poisoning verdict (thesis REE-stability item).
+"""Surface Pourbaix / resting-state coverage on a SINGLE consistent facet.
 
-Combines the UMA *OH/*O screen (oh_o_screen.jsonl, script co_surface_screen with
---adsorbates OH,O) with the UMA *CO/*H descriptors (surface_dft_dG.csv, dG_uma
-column) on a single MLIP footing, and applies the CHE potential dependence to ask:
-at CO2RR operating potential, is the strongest-binding site clean/*CO/*H, or is it
-covered by *OH/*O (oxidation / poisoning)?
+Fixes two issues in the first version of this analysis:
+  (1) it omitted the CO2RR intermediate *COOH from the competing surface species,
+      which for most candidates is actually the most stable adsorbate at operating
+      potential -- so "all O/OH poisoned" was an artefact of leaving it out;
+  (2) it mixed facets (O/OH from the strongest-*OH facet, CO/H from a different
+      facet). Here every adsorbate is taken on the SAME facet -- the *OH facet from
+      the QE O/OH run (dft_oh/), with CO/COOH/H read from the main QE run
+      (dft/surface_dft_dG.csv) for that same facet. Candidates whose *OH facet is
+      absent from the main run are reported as facet-inconsistent (need O/OH on the
+      activity facet to complete rigorously).
 
-CHE potential dependence (RHE; n electrons released on adsorbate formation):
-  *OH  (*+H2O -> *OH + (H+ +e-)):        dG_OH(U) = dG_OH(0) - 1 eU
-  *O   (*+H2O -> *O + 2(H+ +e-)):        dG_O(U)  = dG_O(0)  - 2 eU
-  *H   (* + (H+ +e-) -> *H):             dG_H(U)  = dG_H(0)  + 1 eU
-  *CO  (chemical, from CO(g)):           dG_CO(U) = dG_CO(0)   (U-independent)
-The most negative dG at a given U is the thermodynamically preferred coverage.
-Strong, U-robust *OH/*O binding => predicted oxide/hydroxide poisoning.
+CHE potential dependence (RHE; consume (H+ +e-) -> +U, release -> -U):
+  *H   : dG_H(U)    = dG_H(0)    + U        (consume 1)
+  *COOH: dG_COOH(U) = dG_COOH(0) + U        (consume 1)   <-- was omitted before
+  *OH  : dG_OH(U)   = dG_OH(0)   - U        (release 1)
+  *O   : dG_O(U)    = dG_O(0)    - 2U       (release 2)
+  *CO  : dG_CO(U)   = dG_CO(0)              (chemical)
+Resting state = min dG. COOH/CO => CO2RR working state; OH/O => oxidation/poisoning;
+H => HER-competing coverage.
 
     /home/jonglee69/.venv_fairchem/bin/python scripts/61_surface_pourbaix.py
 """
 from __future__ import annotations
-import csv, json
+import csv
 from pathlib import Path
 import numpy as np
 import matplotlib
@@ -26,114 +32,87 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 ROOT = Path(__file__).resolve().parent.parent
-OHO = ROOT / "outputs/qe_surface/oh_o_screen.jsonl"
 DFT = ROOT / "outputs/qe_surface/dft/surface_dft_dG.csv"
 DFT_OHO = ROOT / "outputs/qe_surface/dft_oh/surface_dft_dG.csv"
 FIG = ROOT / "figures"; FIG.mkdir(exist_ok=True)
-US = [0.0, -0.3, -0.6, -1.0]  # V vs RHE (CO2RR window)
-# level of theory used, set by load_oho(): "DFT" if the QE O/OH run exists, else "UMA"
-LEVEL = "UMA"
+US = [0.0, -0.3, -0.6, -1.0]
+
+KIND = {"COOH": "CO2RR", "CO": "CO2RR", "OH": "oxidation", "O": "oxidation", "H": "HER"}
 
 
-def load_oho():
-    """Strongest dG_OH, dG_O per candidate. Prefer the QE DFT confirmation run
-    (dft_oh/surface_dft_dG.csv); fall back to the UMA screen (oh_o_screen.jsonl)."""
-    global LEVEL
-    if DFT_OHO.exists():
-        LEVEL = "DFT"
-        out = {}
-        for r in csv.DictReader(open(DFT_OHO)):
-            out.setdefault(r["formula"], {})[r["adsorbate"]] = float(r["dG_dft_eV"])
-        return {f: {"OH": d.get("OH"), "O": d.get("O")} for f, d in out.items()}
-    out = {}
-    for line in open(OHO):
-        d = json.loads(line)
-        if "error" in d:
-            continue
-        name = d["source"].replace(".cif", "")
-        oh = [v for f in d.get("facets", []) for v in f.get("dG_OH_values", [])]
-        o = [v for f in d.get("facets", []) for v in f.get("dG_O_values", [])]
-        out[name] = {"OH": min(oh) if oh else None, "O": min(o) if o else None}
-    return out
+def dG(sp, g0, U):
+    return {"H": g0 + U, "COOH": g0 + U, "OH": g0 - U, "O": g0 - 2 * U, "CO": g0}[sp]
 
 
-def load_co_h():
-    """dG_CO (closest to 0) and min dG_H per candidate. Use the DFT column when the
-    O/OH values are DFT (consistent footing), else the UMA column."""
-    col = "dG_dft_eV" if LEVEL == "DFT" else "dG_uma_eV"
-    co, h = {}, {}
+def load():
+    # O/OH DFT with facet
+    oho = {}
+    for r in csv.DictReader(open(DFT_OHO)):
+        oho.setdefault(r["formula"], {})[r["adsorbate"]] = (float(r["dG_dft_eV"]), r["facet"])
+    # main DFT per (formula, facet): CO/COOH/H
+    main = {}
     for r in csv.DictReader(open(DFT)):
-        f = r["formula"]; g = float(r[col]); a = r["adsorbate"]
-        if a == "CO":
-            co.setdefault(f, []).append(g)
-        elif a == "H":
-            h.setdefault(f, []).append(g)
-    co_best = {f: min(v, key=abs) for f, v in co.items()}
-    h_best = {f: min(v) for f, v in h.items()}
-    return co_best, h_best
+        main.setdefault((r["formula"], r["facet"]), {})[r["adsorbate"]] = float(r["dG_dft_eV"])
+    return oho, main
 
 
-def dG_at(species, g0, U):
-    if species == "OH":
-        return g0 - 1 * U
-    if species == "O":
-        return g0 - 2 * U
-    if species == "H":
-        return g0 + 1 * U
-    return g0  # CO chemical
-
-
-def main():
-    oho = load_oho()
-    co_best, h_best = load_co_h()
-    rows = []
-    for name in sorted(oho):
-        g = {"OH": oho[name]["OH"], "O": oho[name]["O"],
-             "CO": co_best.get(name), "H": h_best.get(name)}
+def main_run():
+    oho, main = load()
+    rows, consistent = [], []
+    for f in sorted(oho):
+        ohv, ohf = oho[f]["OH"]; ov, _ = oho[f]["O"]
+        same = main.get((f, ohf))
+        if not same:
+            print(f"[facet-inconsistent] {f}: *OH facet {ohf} absent from main DFT "
+                  f"(need O/OH on an activity facet) -- skipped")
+            continue
+        consistent.append(f)
+        g = {"OH": ohv, "O": ov, "CO": same["CO"], "H": same["H"], "COOH": same["COOH"]}
         for U in US:
-            vals = {s: dG_at(s, g[s], U) for s in g if g[s] is not None}
-            winner = min(vals, key=vals.get)
-            poisoned = winner in ("OH", "O")
-            rows.append({"candidate": name, "U_RHE": U,
-                         **{f"dG_{s}": round(vals[s], 3) for s in vals},
-                         "dominant": winner, "poisoned": poisoned})
-    # table
-    out = ROOT / f"outputs/qe_surface/surface_pourbaix_{LEVEL.lower()}.csv"
-    cols = ["candidate", "U_RHE", "dG_OH", "dG_O", "dG_CO", "dG_H", "dominant", "poisoned"]
-    with open(out, "w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=cols, extrasaction="ignore")
-        w.writeheader(); w.writerows(rows)
-    print(f"[{LEVEL}] wrote {out}\n")
-    print(f"{'candidate':14s} " + "  ".join(f"U={u:+.1f}" for u in US))
-    for name in sorted(oho):
+            vals = {s: dG(s, g[s], U) for s in g}
+            w = min(vals, key=vals.get)
+            rows.append({"candidate": f, "facet": ohf, "U_RHE": U,
+                         **{f"dG_{s}": round(vals[s], 3) for s in g},
+                         "resting": w, "class": KIND[w]})
+    out = ROOT / "outputs/qe_surface/surface_pourbaix_samefacet.csv"
+    if rows:
+        with open(out, "w", newline="") as fh:
+            w = csv.DictWriter(fh, fieldnames=list(rows[0].keys())); w.writeheader(); w.writerows(rows)
+        print(f"\nwrote {out}\n")
+    print(f"{'candidate':14s} facet   " + "  ".join(f"U={u:+.1f}" for u in US))
+    for f in consistent:
         cells = []
         for U in US:
-            r = next(x for x in rows if x["candidate"] == name and x["U_RHE"] == U)
-            cells.append(f"{r['dominant']:>4s}{'*' if r['poisoned'] else ' '}")
-        print(f"{name:14s} " + "   ".join(cells))
-    print("\n(* = *OH/*O dominant => predicted oxidation/poisoning; U in V vs RHE)")
+            r = next(x for x in rows if x["candidate"] == f and x["U_RHE"] == U)
+            cells.append(f"{r['resting']:>4s}")
+        fac = next(x["facet"] for x in rows if x["candidate"] == f)
+        print(f"{f:14s} {fac:6s} " + "   ".join(cells))
+    print("\nresting state: COOH/CO=CO2RR working  OH/O=oxidation  H=HER coverage")
 
-    # figure: dG vs U for the strongest species, all candidates (OH & O only, +CO ref line)
-    fig, ax = plt.subplots(figsize=(7.0, 4.8))
-    Ux = np.linspace(-1.1, 0.1, 50)
-    cmap = plt.cm.viridis(np.linspace(0, 0.85, len(oho)))
-    for c, name in zip(cmap, sorted(oho)):
-        oh0 = oho[name]["OH"]
-        ax.plot(Ux, oh0 - Ux, color=c, lw=1.8, label=f"{name}")
-    ax.axhline(0, color="grey", lw=0.8, ls="--")
-    ax.axhspan(-9, 0, color="red", alpha=0.04)
-    ax.text(-1.05, -0.6, "$*$OH favourable (poisoning)", color="darkred", fontsize=8)
-    ax.axvspan(-1.0, -0.3, color="grey", alpha=0.10)
-    ax.text(-0.85, ax.get_ylim()[1]*0.9 if False else -8.0, "CO$_2$RR window", fontsize=8, color="k")
-    ax.set_xlabel("potential $U$ (V vs RHE)")
-    ax.set_ylabel(r"strongest $\Delta G_{*\rm OH}(U)$ (eV)")
-    ax.set_title(f"Surface Pourbaix: $*$OH binding vs potential ({LEVEL}, strongest site)")
-    ax.legend(fontsize=7, loc="upper right")
-    fig.tight_layout()
-    suffix = "" if LEVEL == "UMA" else f"_{LEVEL.lower()}"
-    p = FIG / f"fig_co2rr_surface_pourbaix{suffix}.pdf"; fig.savefig(p); plt.close(fig)
-    print(f"\nwrote {p}")
+    # figure: resting-state free energies vs U for the consistent candidates
+    if consistent:
+        n = len(consistent)
+        fig, axes = plt.subplots(1, n, figsize=(3.4 * n, 3.6), sharey=True)
+        if n == 1:
+            axes = [axes]
+        Ux = np.linspace(-1.05, 0.05, 40)
+        colors = {"COOH": "#1b7837", "CO": "#5aae61", "OH": "#b2182b",
+                  "O": "#d6604d", "H": "#4393c3"}
+        for ax, f in zip(axes, consistent):
+            ohv, ohf = oho[f]["OH"]; ov, _ = oho[f]["O"]; same = main[(f, ohf)]
+            g = {"OH": ohv, "O": ov, "CO": same["CO"], "H": same["H"], "COOH": same["COOH"]}
+            for s in g:
+                ax.plot(Ux, [dG(s, g[s], U) for U in Ux], color=colors[s], lw=1.8, label=f"*{s}")
+            ax.axvspan(-1.0, -0.3, color="grey", alpha=0.10)
+            ax.set_title(f"{f}\n(facet {ohf})", fontsize=8)
+            ax.set_xlabel("$U$ (V vs RHE)")
+        axes[0].set_ylabel(r"$\Delta G$ (eV)")
+        axes[-1].legend(fontsize=7, loc="upper left", bbox_to_anchor=(1.01, 1.0))
+        fig.suptitle("Surface Pourbaix (same facet, all species incl. *COOH; DFT)", fontsize=9)
+        fig.tight_layout()
+        p = FIG / "fig_co2rr_surface_pourbaix_dft.pdf"; fig.savefig(p, bbox_inches="tight"); plt.close(fig)
+        print(f"\nwrote {p}")
 
 
 if __name__ == "__main__":
-    main()
+    main_run()
