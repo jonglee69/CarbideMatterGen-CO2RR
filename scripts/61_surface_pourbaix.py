@@ -33,7 +33,10 @@ import matplotlib.pyplot as plt
 
 ROOT = Path(__file__).resolve().parent.parent
 DFT = ROOT / "outputs/qe_surface/dft/surface_dft_dG.csv"
-DFT_OHO = ROOT / "outputs/qe_surface/dft_oh/surface_dft_dG.csv"
+# activity-facet O/OH run (consistent with main DFT facets) preferred; fall back to
+# the earlier strongest-*OH run if the activity run is absent.
+_ACT = ROOT / "outputs/qe_surface/dft_oh_act/surface_dft_dG.csv"
+DFT_OHO = _ACT if _ACT.exists() else ROOT / "outputs/qe_surface/dft_oh/surface_dft_dG.csv"
 FIG = ROOT / "figures"; FIG.mkdir(exist_ok=True)
 US = [0.0, -0.3, -0.6, -1.0]
 
@@ -92,9 +95,10 @@ def main_run():
     # figure: resting-state free energies vs U for the consistent candidates
     if consistent:
         n = len(consistent)
-        fig, axes = plt.subplots(1, n, figsize=(3.4 * n, 3.6), sharey=True)
-        if n == 1:
-            axes = [axes]
+        ncol = 3 if n > 3 else n
+        nrow = -(-n // ncol)
+        fig, axes = plt.subplots(nrow, ncol, figsize=(3.3 * ncol, 3.3 * nrow), sharey=True)
+        axes = np.atleast_1d(axes).ravel()
         Ux = np.linspace(-1.05, 0.05, 40)
         colors = {"COOH": "#1b7837", "CO": "#5aae61", "OH": "#b2182b",
                   "O": "#d6604d", "H": "#4393c3"}

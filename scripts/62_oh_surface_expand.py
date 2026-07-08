@@ -21,9 +21,17 @@ from carbidemattergen.co_surface_screen import (
 
 ADS = ("OH", "O")
 
+# activity (U_L) facet per candidate (tag = "".join(miller)); used with
+# --activity-facets so *O/*OH land on the SAME facet as the CO/COOH/H main DFT,
+# giving a fully consistent same-facet surface Pourbaix.
+ACTIVITY_FACETS = {
+    "Ce2Y2ZrWC6": "101", "CeY2ZrWC7": "011", "La3Y5(WC3)3": "101",
+    "La5Y4W2C9": "111", "Pr3Y2WC6": "010", "Y2ZrWC8": "100",
+}
+
 
 def export_candidate(structure, calc, formula, targets_dir, max_index,
-                     fmax, max_steps, site_cap, progress):
+                     fmax, max_steps, site_cap, progress, target_tag=None):
     from pymatgen.analysis.adsorption import AdsorbateSiteFinder
     from pymatgen.io.ase import AseAtomsAdaptor
     from ase.io import write as ase_write
@@ -31,6 +39,13 @@ def export_candidate(structure, calc, formula, targets_dir, max_index,
     refs = {a: _reference_energy(calc, a) for a in ADS}
     facets = select_terminations(structure, calc, max_index=max_index)
     progress(f"  {len(facets)} terminations: {[m for m, _ in facets]}")
+
+    if target_tag is not None:
+        facets = [(mi, s) for mi, s in facets
+                  if "".join(str(i) for i in mi) == target_tag]
+        if not facets:
+            progress(f"  [warn] target facet {target_tag} not found -- skip"); return []
+        progress(f"  targeting activity facet {target_tag}")
 
     facet_best = {}  # mi -> {ads: (dG, adslab_atoms, clean_atoms, site_frac)}
     for mi, slab in facets:
@@ -97,6 +112,9 @@ def main():
     ap.add_argument("--site-cap", type=int, default=None)
     ap.add_argument("--fmax", type=float, default=FMAX)
     ap.add_argument("--max-steps", type=int, default=MAX_STEPS)
+    ap.add_argument("--activity-facets", action="store_true",
+                    help="target each candidate's U_L (activity) facet (ACTIVITY_FACETS) "
+                         "for a same-facet Pourbaix consistent with the main DFT")
     args = ap.parse_args()
 
     from pymatgen.core import Structure
@@ -107,9 +125,10 @@ def main():
     for fp in files:
         print(f"[run ] {fp.name}", flush=True)
         s = Structure.from_file(str(fp))
+        tgt = ACTIVITY_FACETS.get(fp.stem) if args.activity_facets else None
         rows = export_candidate(s, calc, fp.stem, args.targets, args.max_index,
                                 args.fmax, args.max_steps, args.site_cap,
-                                progress=lambda m: print(m, flush=True))
+                                progress=lambda m: print(m, flush=True), target_tag=tgt)
         all_rows.extend(rows)
     man = args.targets / "dft_targets_oh.csv"
     with open(man, "w", newline="") as f:

@@ -461,8 +461,8 @@ CHE 한계 전위, $d$-밴드 중심, 볼록 껍질 안정성 분석은 완료�
 \begin{itemize}[nosep]
 \item \tbc{$*$COOH 심우물 자리의 투영 결정-궤도(COHP/COOP) 결합 분석 --- 해리성 과결합 여부의
 직접 확인(LOBSTER)}
-\item \tbc{여섯 후보의 \emph{활성 면} 기준 같은-면 완전 표면 Pourbaix($*$COOH 포함) 및 피복률
---- 세 후보의 정지상태 $*$COOH 결과(\ref{sec:ree-stability}절)를 활성 면 $*$O/$*$OH DFT로 완결}
+\item \tbc{활성 면 정지상태(\ref{sec:ree-stability}절, 작동 전위에서 $*$COOH 우세)의 피복률
+(부분 피복)·국소 pH 및 개회로 산화막의 동역학적 안정성 정량}
 \item \tbc{희토류 벌크 용출 Pourbaix 수치 도표 --- 벌크 껍질 준안정(\ref{sec:hull}절)과
 표준 전위를 정량 도표로 통합(의존성 정합 MP 환경 필요)}
 \end{itemize}
@@ -496,31 +496,31 @@ $*$CO($\Delta G_{\rm CO}\!\approx\!0$)보다 훨씬 강하여, 이 희토류-카
 $*$COOH를 포함한 같은-면 비교로 판정해야 하며(아래 DFT 정정 참조), 이때 산화가 아니라 $*$COOH가
 우세함이 드러난다.
 
-\emph{DFT 확정과 정지상태(resting state)---정정.} 각 후보의 최강-$*$OH 면에서 청정슬랩·$*$OH·$*$O를
-QE 단일점(DFT$/\!/$UMA, $\Gamma$, 60/480~Ry, 24 슬랩; La-rich 조성은 GPU SCF 비수렴으로 CPU 폴백)으로
-재계산하였다. \textbf{DFT와 UMA는 $r=0.986$(MAE 0.21~eV)로 강하게 일치}하여 $*$O/$*$OH 결합
-자유에너지를 확증한다($\Delta G_{*\mathrm{OH}}(0)=-2.4\!\sim\!-6.7$~eV, $\Delta G_{*\mathrm{O}}(0)=
--0.6\!\sim\!-4.3$~eV; 표면의 큰 산소친화도 확인). 그러나 \emph{작동 중 표면 정지상태}를 판정하려면
-경쟁하는 모든 흡착종을 \emph{같은 면}에서, 특히 CO$_2$RR 반응 중간체 $*$COOH를 포함해
-($\Delta G_{*\mathrm{COOH}}(U)=\Delta G_{*\mathrm{COOH}}(0)+eU$) 비교해야 한다. $*$OH 면에 주 DFT의
-$*$CO/$*$COOH/$*$H가 존재하는 세 후보에 대해 같은-면 완전 Pourbaix를 산출하면(그림~\ref{fig:pourbaix})
-\textbf{Ce$_2$Y$_2$ZrWC$_6$·Pr$_3$Y$_2$WC$_6$는 전 작동창에서, CeY$_2$ZrWC$_7$는 $-0.3$~V 이하에서
-$*$COOH(반응 중간체)가 정지상태}이며 $*$O/$*$OH가 지배하지 않는다. 즉 \emph{음극 작동 전위에서의
-정지상태는 산화 피복이 아니라 $*$COOH 피복(작동 상태)}이다. 강한 $*$OH/$*$O 결합은 산화 \emph{경향}
-(개회로·기동 시 위험)을 뜻하지만 작동 전위에서 $*$COOH가 이를 능가한다. 실질 한계는 여러 후보의
-\emph{$*$COOH 과결합}($\Delta G_{*\mathrm{COOH}}\!\approx\!-3\!\sim\!-4$~eV $\Rightarrow$ $*$COOH$\to*$CO
-강한 흡열, 높은 $U_L$; 표~\ref{tab:che}과 일관)이며 산화 피독과는 다른 문제다. \emph{한계}: 위 분석은
-$*$OH 면이 주 DFT 면과 일치하는 세 후보에 국한된다(La$_3$Y$_5$(WC$_3$)$_3$·La$_5$Y$_4$W$_2$C$_9$·
-Y$_2$ZrWC$_8$는 활성 면에서의 $*$O/$*$OH DFT가 추가로 필요). 여섯 후보의 활성-면 정지상태 및
-피복률 정량은 후속 과제다. 교차 검증은 \ref{ch:experiment}장의 XPS 산화 상태·용출 후분석과
+\emph{활성 면 같은-면 완전 Pourbaix(DFT, 여섯 후보 완결).} 정지상태를 엄밀히 판정하려면 경쟁
+흡착종을 \emph{같은 면}에서, 특히 CO$_2$RR 반응 중간체 $*$COOH를 포함해
+($\Delta G_{*\mathrm{COOH}}(U)=\Delta G_{*\mathrm{COOH}}(0)+eU$) 비교해야 한다. 이를 위해 각 후보의
+\emph{활성 면}(최소 $U_L$ 면, 표~\ref{tab:che})에서 $*$O/$*$OH를 QE로 재계산해(24 슬랩, GPU;
+La-rich·대형 슬랩은 CPU 폴백) $*$CO/$*$COOH/$*$H와 동일 면에서 결합하였다. \textbf{활성 면의
+$*$OH/$*$O 결합은 최악 면보다 훨씬 약하다}($\Delta G_{*\mathrm{OH}}=-0.8\!\sim\!-1.6$~eV, 일부
+$\Delta G_{*\mathrm{O}}\!\gtrsim\!0$) --- 즉 실제 반응 면은 산소친화도가 낮다. 여섯 후보 같은-면
+Pourbaix(그림~\ref{fig:pourbaix})의 결론: \textbf{작동 전위($-0.3\!\sim\!-1.0$~V vs RHE)에서 여섯
+후보 모두 반응 중간체 $*$COOH가 정지상태}이며(-0.6~V 이하는 6/6, $-0.3$~V는 5/6; La$_3$Y$_5$만
+$-0.6$~V에서 전환), $*$O/$*$OH 산화 피복은 \emph{개회로 부근($\sim\!0$~V)의 과도적 상태}에 국한된다.
+따라서 \emph{음극 작동 조건에서는 산화 피독이 아니라 $*$COOH(작동 상태)가 지배}하며, 앞선
+``전면 피독'' 판정은 (i) $*$COOH 누락과 (ii) 면 혼합에 기인한 인공산물이었다. 산화 위험은 실재하나
+그 무대는 \emph{기동/개회로}이고, 후보 차별화의 실질 축은 산화가 아니라 $*$COOH 결합 세기(활성,
+표~\ref{tab:che})다. UMA와의 일치는 활성 면(약결합)에서 $r=0.74$(MAE 0.60~eV)로 최악 면($r=0.99$)보다
+낮은데, 이는 약하게 결합하는 자리에서 MLIP 신뢰도가 떨어짐을 뜻하며 DFT(기준)는 오히려 \emph{더 약한}
+결합(더 낮은 산소친화도)을 준다. 교차 검증은 \ref{ch:experiment}장의 XPS 산화 상태·용출 후분석과
 in-situ FT-IR($*$COOH/$*$CO 밴드)로 수행한다.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{fig_co2rr_surface_pourbaix_dft.pdf}
-\caption{같은-면 완전 표면 Pourbaix(DFT, $*$COOH 포함): $*$OH 면 데이터가 주 DFT와 일치하는 세
-후보. 각 흡착종 $\Delta G$의 전위 의존성. 작동창(음영)에서 최저 $\Delta G$ 종이 정지상태이며, 세
-후보 모두 반응 중간체 $*$COOH(녹색)가 우세하여 산화 피복($*$OH/$*$O, 적색)이 지배하지 않는다.}
+\caption{여섯 후보의 활성 면 같은-면 완전 표면 Pourbaix(DFT, $*$COOH 포함). 각 흡착종 $\Delta G$의
+전위 의존성; 작동창(음영)에서 최저 $\Delta G$ 종이 정지상태다. 작동 전위 전역에서 반응 중간체
+$*$COOH(녹색)가 우세하고 산화 종($*$OH/$*$O, 적색)은 개회로 부근에만 나타나, 작동 중 산화 피독이
+아님을 보인다.}
 \label{fig:pourbaix}
 \end{figure}
 
