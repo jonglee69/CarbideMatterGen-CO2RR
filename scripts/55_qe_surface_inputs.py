@@ -69,7 +69,7 @@ def kgrid_slab(atoms):
             max(1, int(np.ceil(KDENS_SLAB / L[1]))), 1)
 
 
-def write_slab(cif, cdir, prefix, calc="scf", kmode="gamma"):
+def write_slab(cif, cdir, prefix, calc="scf", kmode="gamma", kmesh=None):
     """Write a slab QE input.
 
     calc='scf'  -> single-point on the (UMA-relaxed) geometry. On a 16 GB GPU
@@ -84,7 +84,10 @@ def write_slab(cif, cdir, prefix, calc="scf", kmode="gamma"):
     atoms = read(str(cif))
     nfix = fix_bottom(atoms) if calc == "relax" else 0
     pseudos = load_pseudos(atoms.get_chemical_symbols())
-    kpts = None if kmode == "gamma" else kgrid_slab(atoms)
+    if kmesh is not None:            # explicit override (e.g. k-convergence ladder)
+        kpts = tuple(kmesh)
+    else:
+        kpts = None if kmode == "gamma" else kgrid_slab(atoms)
     # tprnfor only for relax. The NVHPC/GPU USPP force routine segfaults on the
     # larger low-symmetry slabs (>~46 atoms) AFTER SCF converges; single-point
     # ΔG needs only the energy, so skip forces for scf and dodge the crash.
@@ -141,9 +144,13 @@ def main():
                          "relax = full ionic relaxation (heavy)")
     ap.add_argument("--kpts", choices=("gamma", "auto"), default="gamma",
                     help="gamma (default, fits 16 GB GPU) or density-based grid")
+    ap.add_argument("--kmesh", default=None,
+                    help="explicit Monkhorst-Pack mesh 'Nx,Ny,Nz' overriding --kpts "
+                         "(for k-convergence tests, e.g. '2,2,1')")
     ap.add_argument("--gas", action="store_true",
                     help="also (re)write gas-reference inputs")
     args = ap.parse_args()
+    kmesh = tuple(int(x) for x in args.kmesh.split(",")) if args.kmesh else None
 
     rows = list(csv.DictReader(open(args.manifest)))
     man = []
@@ -157,7 +164,7 @@ def main():
             if prefix in seen:
                 continue
             seen.add(prefix)
-            info = write_slab(cif, cdir, prefix, calc=args.calc, kmode=args.kpts)
+            info = write_slab(cif, cdir, prefix, calc=args.calc, kmode=args.kpts, kmesh=kmesh)
             info.update({"formula": formula, "facet": facet, "adsorbate": ads,
                          "kind": kind, "dG_uma": r.get("dG_uma"),
                          "src_cif": str(cif)})
