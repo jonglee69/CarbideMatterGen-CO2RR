@@ -486,8 +486,8 @@ CHE 한계 전위, $d$-밴드 중심, 볼록 껍질 안정성 분석은 완료�
 직접 확인(LOBSTER)}
 \item \tbc{활성 면 정지상태(\ref{sec:ree-stability}절, 작동 전위에서 $*$COOH 우세)의 피복률
 (부분 피복)·국소 pH 및 개회로 산화막의 동역학적 안정성 정량}
-\item \tbc{희토류 벌크 용출 Pourbaix 수치 도표 --- 벌크 껍질 준안정(\ref{sec:hull}절)과
-표준 전위를 정량 도표로 통합(의존성 정합 MP 환경 필요)}
+\item \tbc{순금속 기준을 넘어선 \emph{카바이드} 표면/벌크의 명시적 Pourbaix(격자 안정화 포함) ---
+\ref{sec:ree-stability}절의 순금속 용출 상한을 카바이드 생성에너지로 보정}
 \end{itemize}
 
 % =====================================================================
@@ -550,22 +550,48 @@ $*$COOH(녹색)가 우세하고 산화 종($*$OH/$*$O, 적색)은 개회로 부�
 본 계산은 Stage~B/Phase~A 파이프라인($*$O,$*$OH를 흡착자로 추가; 스크립트
 \texttt{co\_surface\_screen --adsorbates OH,O} 및 \texttt{61\_surface\_pourbaix.py})을 재사용한다.
 
-\paragraph{(2) 벌크 Pourbaix / 용출 열역학(격자 안정화의 정량화).} DFT 카바이드 생성에너지
-(\ref{sec:outstanding}절의 볼록 껍질 항목)와 희토류 이온/산화물/수산화물의 수용액 기준 에너지
-(Materials Project 수용액 상)로부터, 각 원소가 작동 $(U,\mathrm{pH})$에서 카바이드로 남는지 아니면
-$M^{3+}$/$M(OH)_3$로 용출하는지의 \emph{Pourbaix 껍질 위 에너지}($\Delta G_{\mathrm{pbx}}$)를 계산한다.
-$\Delta G_{\mathrm{pbx}}>0$은 용출 구동력을, 그 크기는 카바이드 격자 안정화가 표준 전위의 큰 음의
-구동력을 얼마나 상쇄하는지를 정량화한다. (본 저장소 환경은 MP API 미접속이라, 완결은 API 키가 있는
-환경에서 수행한다.)
+\paragraph{(2) 벌크 Pourbaix / 용출 열역학(수행 완료).} 구성 금속이 작동 조건에서 금속(면역)으로
+남는지, 고체 산화물/수산화물로 부동태화되는지, 아니면 용존 이온으로 용출되는지를 \emph{실험 열역학}
+Pourbaix로 판정하였다(수용액 이온·기준 산화물 $\Delta G_f$는 Materials Project 이온 참조(Wagman/NBS),
+수산화물은 CRC/Wagman 표; pymatgen \texttt{PourbaixDiagram}으로 Nernst 전위·pH 의존성 계산). CO$_2$RR
+조건(pH~7, 국소 음극 알칼리화 pH~10 포함; $U=0\!\sim\!-1.1$~V vs RHE)에서 결과는(표~\ref{tab:pourbaix}):
+\textbf{어느 금속도 작동 전위에서 면역(금속 안정)이 아니다}(음극 바이어스 하의 W 제외). La·Ce·Zr은
+수산화물막으로 \emph{부동태화}되고, Pr·Y는 이온으로 \emph{용출}되며(단 Y는 국소 알칼리 pH에서 부동태화),
+W는 개회로에서 텅스텐산염(WO$_4^{2-}$)으로 용해되나 음극 바이어스에서 면역이다. 즉 벌크 열역학은
+\emph{개회로/기동 시 산화(부동태화 또는 용출)}를 예측하여 표면 결과(작동 전위=$*$COOH 정지상태)와
+정합한다. \emph{유의}: 이는 \emph{순금속} 기준이라 카바이드 격자 안정화(\ref{sec:hull}절의 생성에너지)를
+포함하지 않은 \emph{용출 상한}이며, 실제 카바이드는 더 안정하다. 수산화물 $\Delta G_f$의 표값 불확실성
+($\sim$수십 kJ/mol)도 정성 판정에는 영향이 작다.
+
+\begin{table}[t]
+\centering
+\caption{구성 금속의 벌크 수용액 Pourbaix(실험 열역학) 판정. CO$_2$RR 작동창(pH~7) 및 국소 알칼리
+(pH~10)에서 안정상. 면역=금속, 부동태=고체 산/수산화물, 용출=용존 이온. \emph{순금속 기준(용출 상한)}.}
+\label{tab:pourbaix}
+\small
+\begin{tabular}{lcc}
+\hline
+금속 & pH~7 ($0\!\sim\!-1.1$~V RHE) & 국소 pH~10 \\
+\hline
+La & 부동태 (La(OH)$_3$) & 부동태 \\
+Ce & 부동태 (Ce(OH)$_3$) & 부동태 \\
+Pr & \textbf{용출 (이온)} & 용출 \\
+Y  & \textbf{용출 (Y$^{3+}$)} & 부동태 \\
+Zr & 부동태 (Zr(OH)$_4$) & 부동태 \\
+W  & 개회로 용출 / 바이어스 하 면역 & 면역 \\
+\hline
+\end{tabular}
+\end{table}
 
 \paragraph{(3) 명시적 표면 산화·탄소 공공 형성 에너지(선택).} 표면 C를 O로 치환하거나 산소
 과층(overlayer)을 형성하는 에너지, 표면 탄소 공공 형성 에너지를 DFT로 계산해, 격자가 초기 산화에
 대해 갖는 국소 장벽을 (1)의 열역학에 보강한다.
 
 이 세 시험은 함께 ``희토류가 격자에 묶여 있어도 전해질 노출 시 산화·용출로 활성점을 덮을 위험''을
-정량적·반증 가능하게 규명한다. 실험적으로는 시험 전후 XPS(표면 산화 상태)와 용출액 ICP-MS,
-그리고 in-situ 라만/SEIRAS의 $M$--O 밴드로 교차 검증한다(\ref{ch:experiment}장). \tbc{(1) 표면
-$*$O/$*$OH Pourbaix 스크린과 (2) 벌크 Pourbaix 용출 열역학 --- 위 프로토콜로 산출}
+정량적·반증 가능하게 규명한다. 위 (1) 표면 $*$O/$*$OH Pourbaix와 (2) 벌크 용출 Pourbaix는 \emph{수행
+완료}되어 일관된 그림을 준다: \textbf{작동 음극 전위에서는 표면이 $*$COOH 정지상태이나, 개회로/기동
+조건에서는 벌크 금속이 부동태화(La·Ce·Zr)되거나 용출(Pr·Y)}된다. 실험적으로는 시험 전후 XPS(표면
+산화 상태)와 용출액 ICP-MS, in-situ 라만/SEIRAS의 $M$--O 밴드로 교차 검증한다(\ref{ch:experiment}장).
 
 % =====================================================================
 \chapter{계획된 실험 검증}
