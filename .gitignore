@@ -40,3 +40,8 @@ thesis/ko_*.log
 *.pem
 id_container
 id_rsa*
+
+# server-side QE build artifacts (do not commit back)
+server/qe/
+server/qe-src/
+server/*.log
