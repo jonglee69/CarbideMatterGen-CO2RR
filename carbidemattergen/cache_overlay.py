@@ -42,6 +42,7 @@ NEW_PROPS: dict[str, str] = {
     "frac_co_selective_sites":  "frac_co_selective_sites",
     "mean_cooh_affinity":       "mean_cooh_affinity",
     "co2rr_selectivity":        "co2rr_selectivity",
+    "min_dG_H":                 "min_dG_H",   # HER-suppression conditioning target (drive > 0)
     # Entropy / diversity
     "metal_mixing_entropy":     "metal_mixing_entropy",
     "n_metal_species":          "n_metal_species",

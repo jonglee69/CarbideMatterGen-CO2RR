@@ -61,7 +61,10 @@ CO_OPTIMUM = 0.0
 CO_WINDOW = 0.20  # |ΔG_CO − CO_OPTIMUM| below this counts as a CO-releasing site.
 
 # Gas-phase free-energy corrections (eV) added to the electronic ΔE.
-DG_CORR = {"CO": 0.10, "COOH": 0.41, "H": 0.24, "OH": 0.30, "O": 0.05}
+DG_CORR = {"CO": 0.10, "COOH": 0.41, "H": 0.24, "OH": 0.30, "O": 0.05,
+           # approximate ZPE-TdS corrections for the branching intermediates
+           # (literature-typical; flagged as approximate in the paper)
+           "CHO": 0.24, "OCCO": 0.20}
 
 # Physical sanity bound on an adsorption ΔG (eV). Freshly-cut, low-symmetry
 # carbide slabs (especially REE-bearing) sometimes fail to relax within the step
@@ -154,6 +157,10 @@ def _reference_energy(calc, adsorbate: str) -> float:
         return _gas_energy(calc, "H2O") - 0.5 * _gas_energy(calc, "H2")
     if adsorbate == "O":   # *O vs H2O - H2
         return _gas_energy(calc, "H2O") - _gas_energy(calc, "H2")
+    if adsorbate == "CHO":  # *CHO vs CO(g) + 1/2 H2 (i.e. *CO + (H+ + e-) at U=0)
+        return _gas_energy(calc, "CO") + 0.5 * _gas_energy(calc, "H2")
+    if adsorbate == "OCCO":  # *OCCO vs 2 CO(g) (C–C coupling of two *CO)
+        return 2.0 * _gas_energy(calc, "CO")
     raise ValueError(adsorbate)
 
 
@@ -179,6 +186,21 @@ def _adsorbate_molecule(name: str):
              [1.05, 0.00, 0.62],     # =O
              [-0.55, 0.95, 0.62],    # –O(H)
              [-0.20, 1.55, 1.25]],   # H on hydroxyl O
+        )
+    if name == "CHO":  # C binds surface; =O and H on the carbon (first C1 hydrogenation of *CO)
+        return Molecule(
+            ["C", "O", "H"],
+            [[0.00, 0.00, 0.00],
+             [0.62, 0.00, 1.02],     # =O (tilted up)
+             [-0.92, 0.00, 0.42]],   # H on C
+        )
+    if name == "OCCO":  # C–C coupled *OCCO dimer; both carbons near the surface, O's up
+        return Molecule(
+            ["C", "C", "O", "O"],
+            [[0.00, 0.00, 0.00],
+             [1.45, 0.00, 0.25],     # second C (C–C ~1.47 Å)
+             [-0.50, 0.00, 1.15],    # O on C1
+             [1.95, 0.00, 1.40]],    # O on C2
         )
     raise ValueError(f"unknown adsorbate: {name}")
 

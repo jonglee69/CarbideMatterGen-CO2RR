@@ -30,6 +30,10 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import sys as _sys
+_sys.path.insert(0, "/tmp/claude-1000/-home-jonglee69-mattergen-CarbideMatterGen/a2ee4b82-8825-428f-aadd-ead5b0944c46/scratchpad")
+import figstyle as _FS
+_FS.apply("en")
 
 ROOT = Path(__file__).resolve().parent.parent
 DFT = ROOT / "outputs/qe_surface/dft/surface_dft_dG.csv"
@@ -97,7 +101,7 @@ def main_run():
         n = len(consistent)
         ncol = 3 if n > 3 else n
         nrow = -(-n // ncol)
-        fig, axes = plt.subplots(nrow, ncol, figsize=(3.3 * ncol, 3.3 * nrow), sharey=True)
+        fig, axes = plt.subplots(nrow, ncol, figsize=(4.3 * ncol, 4.0 * nrow), sharey=True)
         axes = np.atleast_1d(axes).ravel()
         Ux = np.linspace(-1.05, 0.05, 40)
         colors = {"COOH": "#1b7837", "CO": "#5aae61", "OH": "#b2182b",
@@ -106,13 +110,15 @@ def main_run():
             ohv, ohf = oho[f]["OH"]; ov, _ = oho[f]["O"]; same = main[(f, ohf)]
             g = {"OH": ohv, "O": ov, "CO": same["CO"], "H": same["H"], "COOH": same["COOH"]}
             for s in g:
-                ax.plot(Ux, [dG(s, g[s], U) for U in Ux], color=colors[s], lw=1.8, label=f"*{s}")
+                ax.plot(Ux, [dG(s, g[s], U) for U in Ux], color=colors[s], lw=2.6, label=f"*{s}")
             ax.axvspan(-1.0, -0.3, color="grey", alpha=0.10)
-            ax.set_title(f"{f}\n(facet {ohf})", fontsize=8)
+            ax.set_title(f"{f}\n(facet {ohf})", fontsize=_FS.SZ["small"])
             ax.set_xlabel("$U$ (V vs RHE)")
+            _FS.clean_axes(ax)
         axes[0].set_ylabel(r"$\Delta G$ (eV)")
-        axes[-1].legend(fontsize=7, loc="upper left", bbox_to_anchor=(1.01, 1.0))
-        fig.suptitle("Surface Pourbaix (same facet, all species incl. *COOH; DFT)", fontsize=9)
+        axes[-1].legend(fontsize=_FS.SZ["legend"], loc="upper left", bbox_to_anchor=(1.01, 1.0))
+        fig.suptitle("Surface Pourbaix (same facet, all species incl. *COOH; DFT)",
+                     fontsize=_FS.SZ["title"], fontweight="bold")
         fig.tight_layout()
         p = FIG / "fig_co2rr_surface_pourbaix_dft.pdf"; fig.savefig(p, bbox_inches="tight"); plt.close(fig)
         print(f"\nwrote {p}")

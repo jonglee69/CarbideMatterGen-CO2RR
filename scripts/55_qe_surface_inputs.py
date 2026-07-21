@@ -25,14 +25,17 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 from pathlib import Path
 
 import numpy as np
 from ase.io import read, write
 from ase.constraints import FixAtoms
 
-PSEUDO_DIR = "/home/jonglee69/software/qe_pseudo/active"
-SSSP_JSON = "/home/jonglee69/software/qe_pseudo/sssp_efficiency.json"
+# Portable: override with QE_PSEUDO_DIR / QE_SSSP_JSON env vars (e.g. on a
+# different machine, point them at server/pseudos and server/sssp_efficiency.json).
+PSEUDO_DIR = os.environ.get("QE_PSEUDO_DIR", "/home/jonglee69/software/qe_pseudo/active")
+SSSP_JSON = os.environ.get("QE_SSSP_JSON", "/home/jonglee69/software/qe_pseudo/sssp_efficiency.json")
 REE_OVERRIDE = {"La": "La.upf", "Ce": "Ce.upf", "Pr": "Pr.upf", "Nd": "Nd.upf"}
 ECUTWFC, ECUTRHO = 60.0, 480.0
 KDENS_SLAB = 30.0   # in-plane k density (Å); out-of-plane forced to 1

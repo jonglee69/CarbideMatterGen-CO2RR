@@ -1,0 +1,9 @@
+[run ] hec3_CrTiV_f100_CO_clean (64 atoms, relax.in)
+[ok] hec3_CrTiV_f100_CO_clean: E=-71888.5422616074 eV
+[run ] hec3_CrTiV_f100_CO_ads (66 atoms, relax.in)
+[ok] hec3_CrTiV_f100_CO_ads: E=-72705.29021974753 eV
+[ok] hec3_CrTiV_f100_CO_clean: E=-71888.5422616074 eV
+[run ] hec3_CrTiV_f100_COOH_ads (68 atoms, relax.in)
+[ok] hec3_CrTiV_f100_COOH_ads: E=-73288.61594226117 eV
+[ok] hec3_CrTiV_f100_CO_clean: E=-71888.5422616074 eV
+[run ] hec3_CrTiV_f100_H_ads (65 atoms, relax.in)

@@ -34,6 +34,10 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import sys as _sys
+_sys.path.insert(0, "/tmp/claude-1000/-home-jonglee69-mattergen-CarbideMatterGen/a2ee4b82-8825-428f-aadd-ead5b0944c46/scratchpad")
+import figstyle as _FS
+_FS.apply("en")
 
 ROOT = Path(__file__).resolve().parent.parent
 DFTCSV = ROOT / "outputs/qe_surface/dft/surface_dft_dG.csv"
@@ -156,8 +160,9 @@ def dband_center(formula, ef):
         per_el[el] = per_el[el] + rho
     if not per_el:
         return None
+    _trap = getattr(np, "trapezoid", getattr(np, "trapz", None))
     def center(rho):
-        num = np.trapz(Eref * rho, Eref); den = np.trapz(rho, Eref)
+        num = _trap(Eref * rho, Eref); den = _trap(rho, Eref)
         return num / den if den else float("nan")
     res = {el: round(center(rho), 3) for el, rho in per_el.items()}
     total = np.sum(list(per_el.values()), axis=0)
@@ -192,21 +197,22 @@ def analyse_dband(best):
 
     # eps_d(metal) vs dG_CO  (d-band model: higher center -> stronger binding)
     x = [r["eps_d_metal"] for r in rows]; y = [r["best_dG_CO"] for r in rows]
-    fig, ax = plt.subplots(figsize=(5.4, 4.4))
-    ax.scatter(x, y, c="crimson", s=60, zorder=3)
+    fig, ax = plt.subplots(figsize=(6.6, 5.2))
+    ax.scatter(x, y, c=_FS.CAT[1], s=110, zorder=3, edgecolors="white", linewidths=1.2)
     for r in rows:
         ax.annotate(r["formula"], (r["eps_d_metal"], r["best_dG_CO"]),
-                    fontsize=7, xytext=(4, 3), textcoords="offset points")
+                    fontsize=_FS.SZ["small"], xytext=(6, 4), textcoords="offset points")
     if len(x) > 2:
         b, a = np.polyfit(x, y, 1)
         xr = np.linspace(min(x), max(x), 50)
-        ax.plot(xr, a + b*xr, "grey", ls="--", lw=1,
+        ax.plot(xr, a + b*xr, color=_FS.GREY, ls="--", lw=1.8,
                 label=f"slope={b:.2f} eV/eV, r={np.corrcoef(x,y)[0,1]:.2f}")
-        ax.legend(fontsize=8)
-    ax.axhline(0, color="grey", lw=0.6, ls=":")
+        ax.legend()
+    ax.axhline(0, color=_FS.GREY, lw=0.9, ls=(0, (4, 3)))
     ax.set_xlabel(r"metal $d$-band center $\varepsilon_d - E_F$ (eV)")
     ax.set_ylabel(r"best-facet $\Delta G_{\rm CO}$ (eV)")
-    ax.set_title("d-band model: CO binding vs $d$-band center")
+    ax.set_title("$d$-band model: CO binding vs $d$-band center")
+    _FS.clean_axes(ax)
     fig.tight_layout()
     p = FIGDIR / "fig_co2rr_dband_vs_dGCO.pdf"; fig.savefig(p); plt.close(fig)
     print(f"wrote {p}")
@@ -221,6 +227,8 @@ if __name__ == "__main__":
         print(f"  {f:14s} f{r['facet']:5s} U_L={r['U_L']:+.2f} V  PDS={r['pds']:4s}  "
               f"dG_COOH={r['dG_COOH']:+.2f} dG_CO={r['dG_CO']:+.2f} "
               f"CO-selective={r['co_selective']}")
-    plot_che(best)
+    # NOTE: fig_co2rr_che_diagram.pdf is now produced by the standalone
+    # scratchpad/fig_che_diagram.py (Nature-style, figstyle). Skip here to
+    # avoid overwriting it. plot_che(best)
     print("\n== d-band centers ==")
     analyse_dband(best)

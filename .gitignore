@@ -34,3 +34,9 @@ thesis/*pass*.log
 thesis/ko_*.log
 
 # Tracked on purpose: figures/, results/, thesis/*.tex, thesis/main*.pdf
+
+# SSH keys / local agent state (never commit)
+.claude/
+*.pem
+id_container
+id_rsa*

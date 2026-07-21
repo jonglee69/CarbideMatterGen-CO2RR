@@ -1,0 +1,48 @@
+&CONTROL
+   calculation      = 'relax'
+   verbosity        = 'low'
+   nstep            = 100
+   tprnfor          = .true.
+   outdir           = './tmp'
+   prefix           = 'H2'
+   forc_conv_thr    = 0.001
+   pseudo_dir       = '/home/jonglee69/software/qe_pseudo/active'
+/
+&SYSTEM
+   ibrav            = 0
+   ecutwfc          = 60.0
+   ecutrho          = 480.0
+   occupations      = 'smearing'
+   degauss          = 0.005
+   smearing         = 'gauss'
+   assume_isolated  = 'mt'
+   ntyp             = 1
+   nat              = 2
+/
+&ELECTRONS
+   conv_thr         = 1e-08
+   mixing_beta      = 0.3
+/
+&IONS
+   ion_dynamics     = 'bfgs'
+/
+&CELL
+/
+&FCP
+/
+&RISM
+/
+ATOMIC_SPECIES
+H 1.008 H.pbe-rrkjus_psl.1.0.0.UPF
+
+K_POINTS gamma
+
+CELL_PARAMETERS angstrom
+14.00000000000000 0.00000000000000 0.00000000000000
+0.00000000000000 14.00000000000000 0.00000000000000
+0.00000000000000 0.00000000000000 14.00000000000000
+
+ATOMIC_POSITIONS angstrom
+H 7.0000000000 7.0000000000 6.6300000000  
+H 7.0000000000 7.0000000000 7.3700000000  
+
