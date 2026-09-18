@@ -27,7 +27,7 @@ Free energies (computational hydrogen electrode; Peterson 2010, Nørskov 2004):
 
 with (H+ + e-) referenced to 1/2 H2(g) at U=0. Gas references E(CO_g), E(CO2_g),
 E(H2_g) are computed once with the SAME UMA calculator (cancels systematic
-error — the oc20 task head predicts RPBE-style total energies on one reference).
+error — the omat task head predicts total energies on one consistent reference).
 
 Gas-phase free-energy corrections Δ(ZPE − TΔS) (eV; Peterson 2010 / Nørskov 2004):
 
@@ -47,7 +47,7 @@ Interpretation
 Model weights are NOT bundled. This uses fairchem v2 (>=2.x) with the Universal
 Model for Atoms (UMA). UMA checkpoints live in the gated HuggingFace repo
 ``facebook/UMA`` — request access there and authenticate (``hf auth login`` or
-``HF_TOKEN``) before first use. We use the ``oc20`` task head (slab+adsorbate
+``HF_TOKEN``) before first use. We use the ``omat`` task head (slab+adsorbate
 catalysis).
 """
 from __future__ import annotations
@@ -78,12 +78,12 @@ FIX_FRAC = 0.5       # fix the bottom this fraction of the slab thickness
 
 
 def _load_fairchem_calc(model: str = "uma-s-1p1", device: str = "cpu",
-                        task_name: str = "oc20"):
+                        task_name: str = "omat"):
     """Return a fairchem v2 ASE calculator (UMA model, given task head).
 
         from fairchem.core import FAIRChemCalculator, pretrained_mlip
         predictor = pretrained_mlip.get_predict_unit("uma-s-1p1", device="cuda")
-        calc = FAIRChemCalculator(predictor, task_name="oc20")
+        calc = FAIRChemCalculator(predictor, task_name="omat")
     """
     from fairchem.core import FAIRChemCalculator, pretrained_mlip  # type: ignore
 

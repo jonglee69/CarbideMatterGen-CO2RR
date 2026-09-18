@@ -85,7 +85,7 @@ changing your validated HER economic policy.
 
 ## Stage B — surface ΔG_CO\* / ΔG_COOH\* (`co_surface_screen.py`)
 
-Mirrors `surface_screen.py` exactly (fairchem **v2 / UMA**, `oc20` task head,
+Mirrors `surface_screen.py` exactly (fairchem **v2 / UMA**, `omat` task head,
 most-stable-termination-per-Miller selection, bottom-fixed relaxations, per-facet
 reporting, `--shard`/resume), but places **\*CO, \*COOH, \*H** at each site and
 computes, under the computational hydrogen electrode (U=0 vs RHE):
@@ -132,7 +132,7 @@ python scripts/35_build_solid_solutions.py ...
 
 # 6. fairchem v2 (UMA) CO2RR surface screen (needs facebook/UMA access)
 python -m carbidemattergen.co_surface_screen \
-  --candidates outputs/sqs --model uma-s-1p1 --task oc20 --device cuda \
+  --candidates outputs/sqs --model uma-s-1p1 --task omat --device cuda \
   --out outputs/screen_co2rr/co2rr.jsonl --site-cap 6
 ```
 
