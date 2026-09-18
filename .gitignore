@@ -1,0 +1,60 @@
+# --- Python ---
+__pycache__/
+*.pyc
+*.egg-info/
+.ipynb_checkpoints/
+
+# --- environments ---
+.venv/
+.venv_*/
+
+# --- large generated data (regenerable; NOT pushed) ---
+outputs/
+cache/
+datasets/
+checkpoints/
+models/
+*.ckpt
+*.tgz
+*.zip
+data/*.csv
+data/*.log
+logs/
+
+# --- private research material: NEVER published ---
+# The public repository is a code release only. The thesis, the analysis
+# figures, the notebooks that embed rendered outputs, the session handoff
+# notes and the manuscript folder stay local.
+thesis/
+figures/
+HANDOFF.md
+notebooks/10_*.ipynb
+notebooks/12_*.ipynb
+notebooks/15_*.ipynb
+notebooks/16_*.ipynb
+results/sqs_summary.csv
+results/qe_pdos_Ef_contributions.csv
+
+# Tracked on purpose: carbidemattergen/, scripts/, configs/, docs/, deploy/,
+# data/*.cif, and the screening tables in results/
+
+# SSH keys / local agent state (never commit)
+.claude/
+*.pem
+id_container
+id_rsa*
+
+# server-side QE build artifacts (do not commit back)
+server/qe/
+server/qe-src/
+server/*.log
+
+# --- fonts (licensed, not redistributable) ---
+notebooks/*.ttf
+
+# --- misc local artifacts ---
+CRASH
+input_tmp.in
+*.bundle
+docs/*.docx
+scripts/render_structure.py

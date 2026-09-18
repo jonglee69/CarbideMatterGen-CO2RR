@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "carbidemattergen"
+version = "0.1.0"
+description = "Physics-aware fine-tuning of MatterGen for non-PGM HER carbide catalyst discovery"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy",
+  "pandas",
+  "pymatgen",
+]
+
+[project.optional-dependencies]
+# Stage B surface screening. fairchem + a checkpoint are installed separately;
+# ase is the common calculator interface.
+screen = ["ase", "fairchem-core"]
+dev = ["pytest", "ruff"]
+
+[tool.setuptools.packages.find]
+include = ["carbidemattergen*"]
