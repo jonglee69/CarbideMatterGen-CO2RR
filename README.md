@@ -1,5 +1,8 @@
 # CarbideMatterGen — CO₂RR-to-CO variant
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23313096.svg)](https://doi.org/10.5281/zenodo.23313096)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 > **Generative discovery of *economical* high-entropy carbide (HEC) electrocatalysts for the
 > electrochemical CO₂-to-CO reduction reaction (CO₂RR-to-CO).**
 
@@ -99,12 +102,12 @@ python scripts/53_qe_pdos.py --qe-dir outputs/qe                        # Stage 
 The top candidate **La₅Y₄W₂C₉** was carried into the laboratory, and the experimental outcome is
 *not* the predicted bulk phase. Mg-assisted heat treatment followed by HCl leaching removes the
 La/Y-containing constituents, leaving an **ε-W₂C-rich catalyst** with exposed carbide regions,
-dispersed residual carbon and a hydrated WOₓ surface. That reconstructed material converts CO₂ to
-**ethanol (77.2% FE)** and **acetone (up to 19.0% FE)** with no detectable CO or C₁ liquid
-products — i.e. the designed composition acts as a *sacrificial precursor* rather than as the
-catalyst itself. The conditioning target used during generation was CO release (ΔG\_CO\* → 0);
-the multicarbon selectivity is a consequence of the post-leaching surface, and is rationalised by
-DFT in the paper below.
+abundant residual carbon (56.7 at.% C by XPS) and a minor hydrated WOₓ component. That
+reconstructed material converts CO₂ to **ethanol (77.2% FE)** and **acetone (up to 19.0% FE)** with
+no detectable CO or C₁ liquid products — i.e. the designed composition acts as a *sacrificial
+precursor* rather than as the catalyst itself. The conditioning target used during generation was
+CO release (ΔG\_CO\* → 0); the multicarbon selectivity is a consequence of the post-leaching
+surface, and is rationalised by DFT in the paper below.
 
 ## Status
 
@@ -112,12 +115,34 @@ Computational pipeline complete. Experimental validation (synthesis, XRD, TEM/ED
 electrochemical CO₂RR, GC-BID gas analysis, ¹H NMR) is **complete** and is reported in the
 manuscript below.
 
+## Archived release and model weights
+
+This repository holds the code, the configuration overlays and the generated La₅Y₄W₂C₉ structure.
+The model weights and the bulk data are too large for GitHub and are deposited at Zenodo together
+with a copy of this tree:
+
+**https://doi.org/10.5281/zenodo.23313096**
+
+| In the Zenodo record | |
+|---|---|
+| `CarbideMatterGen_epoch415_loss0.13.ckpt` | the fine-tuned checkpoint used for every structure reported in the paper (873 MB) |
+| `finetuning_labels.zip` | the 5,275 training and 577 validation carbides with their nine conditioning labels |
+| `generated_structures.zip` | the conditioned generation pools (γ = 1.0 and 2.5) and the unconditional control pool |
+| `screening_and_conditional_fidelity.zip` | the screening outputs and the conditional-fidelity evaluation |
+| `dft_energies_structures_inputs.zip` | all plane-wave DFT total energies, the slab and adsorbate geometries, the Quantum ESPRESSO inputs, and a script that reproduces every free energy in the paper |
+
 ## Citing this work
 
 If you use this code or the generated structures, please cite:
 
-> H. Lee, H. H. Nersisyan, J. H. Lee. *Rare-earth extraction from a generatively designed carbide
-> yields an ε-W₂C/WOₓ catalyst that converts CO₂ into ethanol and acetone* (under review, 2026).
+> H. Lee, H. H. Nersisyan, J. H. Lee. *Sacrificial rare-earth extraction closes the C₁ channel on
+> an ε-W₂C/WOₓ catalyst that converts CO₂ into ethanol and acetone* (under review at *Cell Reports
+> Physical Science*, 2026).
+
+the archived release:
+
+> H. Lee, H. H. Nersisyan, J. H. Lee. *CarbideMatterGen: code, model and data for the ε-W₂C/WOₓ
+> CO₂-reduction study*, v1.0, Zenodo (2026). https://doi.org/10.5281/zenodo.23313096
 
 and the underlying generative model:
 
