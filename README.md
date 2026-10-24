@@ -1,6 +1,6 @@
 # CarbideMatterGen — CO₂RR-to-CO variant
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23313096.svg)](https://doi.org/10.5281/zenodo.23313096)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23313095.svg)](https://doi.org/10.5281/zenodo.23313095)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 > **Generative discovery of *economical* high-entropy carbide (HEC) electrocatalysts for the
@@ -121,7 +121,7 @@ This repository holds the code, the configuration overlays and the generated La�
 The model weights and the bulk data are too large for GitHub and are deposited at Zenodo together
 with a copy of this tree:
 
-**https://doi.org/10.5281/zenodo.23313096**
+**https://doi.org/10.5281/zenodo.23313095**
 
 | In the Zenodo record | |
 |---|---|
@@ -142,7 +142,7 @@ If you use this code or the generated structures, please cite:
 the archived release:
 
 > H. Lee, H. H. Nersisyan, J. H. Lee. *CarbideMatterGen: code, model and data for the ε-W₂C/WOₓ
-> CO₂-reduction study*, v1.0, Zenodo (2026). https://doi.org/10.5281/zenodo.23313096
+> CO₂-reduction study*, v1.1, Zenodo (2026). https://doi.org/10.5281/zenodo.23313095
 
 and the underlying generative model:
 
