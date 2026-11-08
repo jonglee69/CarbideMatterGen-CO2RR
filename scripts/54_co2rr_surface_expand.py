@@ -105,6 +105,9 @@ def screen_and_export(structure, calc, formula: str, targets_dir: Path,
                 e_ads, _, _ = _relax(a, calc, fmax, max_steps)
                 dG = (e_ads - e_slab - refs[ads]) + DG_CORR[ads]
                 if abs(dG) > PHYS_DG_MAX:
+                    # keep the slot (None) so dG_<ads>_values stay site-aligned
+                    # across adsorbates; excluded from every descriptor below
+                    facet_g[ads].append(None)
                     continue
                 facet_g[ads].append(dG)
                 agg[ads].append(dG)
@@ -119,7 +122,7 @@ def screen_and_export(structure, calc, formula: str, targets_dir: Path,
                     best_here[ads] = (round(dG, 4), a.copy(),
                                       clean_atoms.copy(), site_frac)
 
-        co = facet_g["CO"]
+        co = [g for g in facet_g["CO"] if g is not None]
         n_sel = sum(1 for g in co if _score_co(g) < CO_WINDOW)
         facet_reports.append({
             "miller": list(mi), "n_sites": len(co), "area_A2": round(area, 2),
@@ -127,7 +130,8 @@ def screen_and_export(structure, calc, formula: str, targets_dir: Path,
             "best_dG_CO": round(min(co, key=_score_co), 4) if co else None,
             "n_co_selective": n_sel,
             "co_density_per_nm2": round(100.0 * n_sel / area, 4) if area else None,
-            **{f"dG_{a}_values": [round(g, 4) for g in facet_g[a]] for a in adsorbates},
+            **{f"dG_{a}_values": [None if g is None else round(g, 4) for g in facet_g[a]]
+               for a in adsorbates},
         })
         if best_here.get("CO"):
             facet_best[tuple(mi)] = best_here

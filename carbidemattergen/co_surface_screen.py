@@ -267,12 +267,16 @@ def screen_candidate(structure, calc, max_index: int = 1,
                 _fix_bottom(a, fix_frac)
                 e_ads, _, _ = _relax(a, calc, fmax, max_steps)
                 dG = (e_ads - e_slab - refs[ads]) + DG_CORR[ads]
-                if abs(dG) <= PHYS_DG_MAX:  # drop divergent/unphysical sites
-                    vals.append(dG)
+                # Divergent/unphysical sites are recorded as None, NOT dropped:
+                # every adsorbate is placed on the same enumerated sites, so index i
+                # must stay the same physical site across the dG_<ads>_values lists
+                # (dropping one entry shifted every later site and broke per-site
+                # pairing such as ΔG_CO,i − ΔG_COOH,i).
+                vals.append(dG if abs(dG) <= PHYS_DG_MAX else None)
             facet_g[ads] = vals
-            agg[ads].extend(vals)
+            agg[ads].extend(g for g in vals if g is not None)
 
-        co = facet_g.get("CO", [])
+        co = [g for g in facet_g.get("CO", []) if g is not None]
         n_sel = sum(1 for g in co if abs(g - CO_OPTIMUM) < CO_WINDOW)
         facet_reports.append({
             "miller": list(mi),
@@ -282,7 +286,8 @@ def screen_candidate(structure, calc, max_index: int = 1,
             "best_dG_CO": round(min(co, key=lambda g: abs(g - CO_OPTIMUM)), 4) if co else None,
             "n_co_selective": n_sel,
             "co_density_per_nm2": round(100.0 * n_sel / area, 4) if area else None,
-            **{f"dG_{a}_values": [round(g, 4) for g in facet_g.get(a, [])]
+            # site-aligned across adsorbates; None = divergent relaxation at that site
+            **{f"dG_{a}_values": [None if g is None else round(g, 4) for g in facet_g.get(a, [])]
                for a in adsorbates},
         })
         if progress:
